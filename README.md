@@ -29,6 +29,12 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
   - python3 app.py if the DB server runs somewhere else other than on local host then:  TCP_HOST=1<DB IP> TCP_PORT=9100 python3 app.py
 -  open the index.html file in the ./team_server_client folder and issue commands (If the team server runs some where other than on the same machine as the client edut the API_URL in the client)
 
+### Running commands
+ - Enter a regular linux command into the team server client or "persist" or "priv_esc"
+
+## Extend 
+- To extend the framework edit the if , else if state ment in the c2_communicator.py file
+
 ## Todo
 - Implement plugins for Privilege escalation, Persistence and for container service exploitation
 - Implement a feature to make the plugins available on demand (Thanks to: https://sabotagesec.com/)
