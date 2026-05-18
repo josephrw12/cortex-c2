@@ -6,7 +6,7 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 ## Current State
  - It can run any Linux System Command remotely
  - Perform Persistence via a startup process
- - Priviledgge Escalate via CVE 2026-43284 
+ - Priviledgge Escalate via CVE 2026-43284 (Thanks to: Mykhailo Stepanov - https://www.linkedin.com/in/mykhailo-stepanov-57857a1a0/)
 
 ## Features
 - Modular and extensible
@@ -31,6 +31,7 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 
 ## Todo
 - Implement plugins for Privilege escalation, Persistence and for container service exploitation
+- Implement a feature to make the plugins available on demand (Thanks to: https://sabotagesec.com/)
 
 ## Important
 -  Successfully tested on a  Arm Cortex-A53 processor
