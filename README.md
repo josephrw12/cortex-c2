@@ -1,6 +1,8 @@
 # cortex-c2
 Cortex C2 is a Open source Linux post exploitation framework inspired by the void link C2 framework, and my implementation was built for embedded device security research and for educational purposes only.
 
+https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compiled-kernel-rootkits
+
 ## Current State
  - It can run any Linux System Command remotely 
 
