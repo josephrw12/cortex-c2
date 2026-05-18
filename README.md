@@ -14,6 +14,10 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 - The agent runs only on Linux
 
 ## Usage
+### Automated
+- ./run.sh
+
+### Manual 
 -  compile any C source code files as necessary gcc -g -o <output_binary_name> <c_soruce_file_name>
 - Run the db_server binary in the ./db folder
 - Edit the DB server IP address in the c2_communicator.py and run it it's located in the ./agent/plugins/python folder
