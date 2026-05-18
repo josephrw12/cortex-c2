@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Machine Command Writer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #13161e;
+      --panel:     #1a1e2a;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #4ade80;
+      --accent-dim:#16a34a;
+      --err:       #f87171;
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --label:     #94a3b8;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    /* subtle grid texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(74,222,128,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,222,128,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 540px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 2rem 2rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(74,222,128,0.1);
+      border: 1px solid rgba(74,222,128,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .icon-wrap svg { width: 22px; height: 22px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    .header-text h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+
+    .header-text p {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .card-body { padding: 1.75rem 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--label);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .input-wrap { position: relative; }
+
+    .input-wrap .prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--accent-dim);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    input, textarea {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      padding: 12px 14px 12px 38px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      resize: none;
+    }
+
+    textarea { padding: 12px 14px; min-height: 88px; line-height: 1.6; }
+
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+
+    input:focus, textarea:focus {
+      border-color: rgba(74,222,128,0.4);
+      box-shadow: 0 0 0 3px rgba(74,222,128,0.08);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 13px;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #0d0f14;
+      font-family: var(--sans);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .submit-btn:hover { background: #86efac; }
+    .submit-btn:active { transform: scale(0.98); }
+    .submit-btn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+    .submit-btn .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #0d0f14;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+
+    .submit-btn.loading .spinner { display: block; }
+    .submit-btn.loading .btn-text { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Response panel */
+    .response-panel {
+      margin: 0 2rem 1.75rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .response-panel.visible { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .response-panel .resp-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .status-dot.ok  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .status-dot.err { background: var(--err);    box-shadow: 0 0 6px var(--err); }
+
+    .resp-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .resp-label.ok  { color: var(--accent); }
+    .resp-label.err { color: var(--err); }
+
+    .resp-body {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      color: var(--text);
+      line-height: 1.7;
+      word-break: break-all;
+    }
+
+    .resp-body .kv { display: flex; gap: 10px; }
+    .resp-body .kv .k { color: var(--muted); min-width: 60px; }
+    .resp-body .kv .v { color: var(--accent); }
+    .resp-body .kv .v.err-val { color: var(--err); }
+
+    .card-footer {
+      border-top: 1px solid var(--border);
+      padding: 12px 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .endpoint-tag {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .method-badge {
+      background: rgba(74,222,128,0.1);
+      color: var(--accent);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(74,222,128,0.2);
+    }
+
+    .history-count {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<div class="card" role="main">
+
+  <div class="card-header">
+    <div class="icon-wrap" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 7l4 4-4 4"/><path d="M12 15h4"/></svg>
+    </div>
+    <div class="header-text">
+      <h1>Command Writer</h1>
+      <p>POST â†’ /write &nbsp;Â·&nbsp; TCP relay to backend</p>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="field">
+      <label for="machine_id">Machine ID</label>
+      <div class="input-wrap">
+        <span class="prefix" aria-hidden="true">#</span>
+        <input id="machine_id" type="text" placeholder="e.g. MACHINE-42" autocomplete="off" spellcheck="false" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="command">Command</label>
+      <textarea id="command" placeholder='e.g. uname -a'></textarea>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="sendRequest()">
+      <div class="spinner" aria-hidden="true"></div>
+      <span class="btn-text">Send Request</span>
+    </button>
+  </div>
+
+  <div class="response-panel" id="responsePanel" role="status" aria-live="polite">
+    <div class="resp-header">
+      <div class="status-dot" id="statusDot"></div>
+      <span class="resp-label" id="statusLabel"></span>
+    </div>
+    <div class="resp-body" id="respBody"></div>
+  </div>
+
+  <div class="card-footer">
+    <div class="endpoint-tag">
+      <span class="method-badge">POST</span>
+      <span id="endpointUrl">http://localhost:5000/write</span>
+    </div>
+    <span class="history-count" id="historyCount"></span>
+  </div>
+
+</div>
+
+<script>
+  const API_URL = `${window.location.origin}/write`;
+  document.getElementById('endpointUrl').textContent = API_URL;
+
+  let requestCount = 0;
+
+  async function sendRequest() {
+    const machineId = document.getElementById('machine_id').value.trim();
+    const command   = document.getElementById('command').value.trim();
+    const btn       = document.getElementById('submitBtn');
+    const panel     = document.getElementById('responsePanel');
+
+    if (!machineId || !command) {
+      showResult('error', null, 'Both fields are required.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+    panel.classList.remove('visible');
+
+    try {
+      const res  = await fetch(API_URL, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ machine_id: machineId, command })
+      });
+      const data = await res.json();
+
+      if (data.status === 'ok') {
+        requestCount++;
+        document.getElementById('historyCount').textContent =
+          `${requestCount} record${requestCount === 1 ? '' : 's'} written`;
+        showResult('ok', data.uuid, null);
+      } else {
+        showResult('error', null, data.message || 'Unknown error');
+      }
+    } catch (err) {
+      showResult('error', null, `Network error: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
+  }
+
+  function showResult(type, uuid, message) {
+    const panel     = document.getElementById('responsePanel');
+    const dot       = document.getElementById('statusDot');
+    const label     = document.getElementById('statusLabel');
+    const body      = document.getElementById('respBody');
+
+    dot.className   = `status-dot ${type === 'ok' ? 'ok' : 'err'}`;
+    label.className = `resp-label ${type === 'ok' ? 'ok' : 'err'}`;
+    label.textContent = type === 'ok' ? 'Success' : 'Error';
+
+    if (type === 'ok') {
+      body.innerHTML = `
+        <div class="kv"><span class="k">status</span><span class="v">OK</span></div>
+        <div class="kv"><span class="k">uuid</span><span class="v">${escHtml(uuid)}</span></div>
+      `;
+    } else {
+      body.innerHTML = `
+        <div class="kv"><span class="k">status</span><span class="v err-val">ERR</span></div>
+        <div class="kv"><span class="k">reason</span><span class="v err-val">${escHtml(message)}</span></div>
+      `;
+    }
+
+    panel.classList.add('visible');
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* Allow Ctrl+Enter / Cmd+Enter to submit from the textarea */
+  document.getElementById('command').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendRequest();
+  });
+</script>
+
+</body>
+</html>
