@@ -1,6 +1,9 @@
 # cortex-c2
 Cortex C2 is a Open source Linux C2 inspired by the void link C2 framework, and my implementation was built for embedded device security research and for educational purposes only.
 
+# State
+ -It can run any Linux System Command remotely
+
 # Features
 - Modular and extensible
 - Custom JSON database
