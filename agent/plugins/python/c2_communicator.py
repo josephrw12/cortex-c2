@@ -269,6 +269,7 @@ def main():
 						    
 						    # Print the output from the C program
 						    print("Output:", result.stdout)
+							update_result(record_uuid, "Persisted on startup")
 						
 						except subprocess.CalledProcessError as e:
 						    print(f"Error running binary. Exit code: {e.returncode}")
