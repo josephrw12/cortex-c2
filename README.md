@@ -10,12 +10,12 @@ Cortex C2 is a Open source Linux C2 inspired by the void link C2 framework, and 
 
 # Usage
 - Run the db_server binary in the ./db folder
-- Run the c2_communicator.py in the ./agent/plugins/python folder
+- Edit the DB server IP address in the c2_communicator.py and run it it's located in the ./agent/plugins/python folder
 - activate the team server in the ./team_server folder
   - activate a python virtual environment
   - pip install falsk falsk-cors
-  - python3 app.py
--  open the index.html file in the ./team_server_client folder and issue commands
+  - python3 app.py if the DB server runs somewhere else other than on local host then:  TCP_HOST=1<DB IP> TCP_PORT=9100 python3 app.py
+-  open the index.html file in the ./team_server_client folder and issue commands (If the team server runs some where other than on the same machine as the client edut the API_URL in the client)
 
 # Important
 - This is work in progress, and I do not know how far this will go, your support is highly appreciated, and I am open to accpeting your contributions to the project
