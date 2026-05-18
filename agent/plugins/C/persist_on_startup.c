@@ -12,7 +12,7 @@
  *
  *   <project_root>/
  *     agent/plugin/C/startup_launcher   <- this binary  (+ source)
- *     agent/plugin/python/communicator.py
+ *     agent/plugin/python/c2_communicator.py
  *     db/db_server
  *     startup.sh                        <- extracted here by the binary
  *     logs/                             <- created at runtime
@@ -21,14 +21,14 @@
 /* Embedded startup script – paths are relative to project root */
 static const char *STARTUP_SCRIPT_CONTENT =
 "#!/bin/bash\n"
-"# startup.sh - Launches db_server and communicator.py in the background\n"
+"# startup.sh - Launches db_server and c2_communicator.py in the background\n"
 "# Place this file at the project root (same level as db/ and agent/).\n"
 "\n"
 "# Resolve the directory where THIS script lives (= project root)\n"
 "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\"\n"
 "\n"
 "DB_SERVER=\"$SCRIPT_DIR/db/db_server\"\n"
-"PY_COMMUNICATOR=\"$SCRIPT_DIR/agent/plugin/python/communicator.py\"\n"
+"PY_COMMUNICATOR=\"$SCRIPT_DIR/agent/plugin/python/c2_communicator.py\"\n"
 "LOG_DIR=\"$SCRIPT_DIR/logs\"\n"
 "\n"
 "mkdir -p \"$LOG_DIR\"\n"
@@ -48,9 +48,9 @@ static const char *STARTUP_SCRIPT_CONTENT =
 "echo \"[OK] db_server started  (PID $DB_PID)\"\n"
 "echo $DB_PID > \"$LOG_DIR/db_server.pid\"\n"
 "\n"
-"# -- communicator.py ----------------------------------------------------------\n"
+"# -- c2_communicator.py ----------------------------------------------------------\n"
 "if [ ! -f \"$PY_COMMUNICATOR\" ]; then\n"
-"    echo \"[ERROR] communicator.py not found at: $PY_COMMUNICATOR\" >&2\n"
+"    echo \"[ERROR] c2_communicator.py not found at: $PY_COMMUNICATOR\" >&2\n"
 "    exit 1\n"
 "fi\n"
 "\n"
@@ -62,7 +62,7 @@ static const char *STARTUP_SCRIPT_CONTENT =
 "\n"
 "nohup \"$PYTHON_BIN\" \"$PY_COMMUNICATOR\" >> \"$LOG_DIR/communicator.log\" 2>&1 &\n"
 "PY_PID=$!\n"
-"echo \"[OK] communicator.py started (PID $PY_PID)\"\n"
+"echo \"[OK] c2_communicator.py started (PID $PY_PID)\"\n"
 "echo $PY_PID > \"$LOG_DIR/communicator.pid\"\n"
 "\n"
 "echo \"Startup complete. Logs in $LOG_DIR\"\n";
