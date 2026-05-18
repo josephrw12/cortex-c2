@@ -22,7 +22,7 @@ Cortex C2 is a Open source Linux post exploitation framework inspired by the voi
 -  open the index.html file in the ./team_server_client folder and issue commands (If the team server runs some where other than on the same machine as the client edut the API_URL in the client)
 
 # Important
-- This is work in progress, and I do not know how far this will go, your support is highly appreciated, and I am open to accpeting your contributions to the project
+- This is work in progress, and I do not know how far this will go, your support is highly appreciated, and I am open to accpeting your contributions to the project (read the contributing.md file)
 - I used claude ai to help in the build process
 - Visit my web site at https://cyberigniter.link
 
