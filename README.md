@@ -9,6 +9,7 @@ Cortex C2 is a Open source Linux C2 inspired by the void link C2 framework, and 
 - The agent runs only on Linux
 
 # Usage
+-  compile any C source code files as necessary gcc -g -o <output_binary_name> <c_soruce_file_name>
 - Run the db_server binary in the ./db folder
 - Edit the DB server IP address in the c2_communicator.py and run it it's located in the ./agent/plugins/python folder
 - activate the team server in the ./team_server folder
