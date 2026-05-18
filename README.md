@@ -29,6 +29,8 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 ## Important
 - This is work in progress, and I do not know how far this will go, your support is highly appreciated, and I am open to accpeting your contributions to the project (read the contributing.md file)
 - I used claude ai to help in the build process
+-  It's named Cortex because I am currently testing it out on a Cortex CPU System 
 - Visit my web site at https://cyberigniter.link
+
 
 
