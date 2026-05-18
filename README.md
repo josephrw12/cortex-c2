@@ -46,7 +46,7 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 - I used claude ai to speed up the build process
 -  It's named Cortex because I am currently testing it out on a Cortex CPU System 
 - Visit my web site at https://cyberigniter.link
-- https://discord.gg/PQe94fcN
+
 
 ## Books 
 - The linux programming interface
