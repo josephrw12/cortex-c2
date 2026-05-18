@@ -6,6 +6,8 @@
  *
  * Build:  gcc -o ipc_echo ipc_echo.c
  * Usage:  echo "hello" | ./ipc_echo
+
+ IMPLEMENT LINUX DIRECT SYSTEMCALLS LATER 
  */
 
 #include <stdio.h>
