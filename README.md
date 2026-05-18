@@ -42,6 +42,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 - Implement a feature to make the plugins available on demand (Thanks to: https://sabotagesec.com/)
 
 ## Important
+- Open an Issue if you run into any errors while trying to use it
 -  Successfully tested on a  Arm Cortex-A53 processor
 - My framework is not evasive as the void link framework
 - This is work in progress, and I do not know how far this will go, your support is highly appreciated, and I am open to accpeting your contributions to the project (read the contributing.md file)
