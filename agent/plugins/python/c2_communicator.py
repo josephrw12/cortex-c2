@@ -253,6 +253,9 @@ def main():
 				if tmp_command != command:
 					# Step 2 â€“ run the command
 					#output = execute_command(command)
+					#--------------------------------------------#
+					#  EXTEND THIS IF ELSE IF TO SUPPORT NEW PLUGINS		 #
+					#--------------------------------------------#
 					if command.startswith("persist"):
 						# Define relative paths
 						script_dir = os.path.dirname(os.path.abspath(__file__))
