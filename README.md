@@ -52,7 +52,8 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 
 
 ## Books 
-- The linux programming interface
+- The linux programming interface by Michael Kerrisk
+https://man7.org/tlpi/
 
 
 
