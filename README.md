@@ -3,6 +3,8 @@ Cortex C2 is a Open source Linux post exploitation framework inspired by the voi
 
 https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compiled-kernel-rootkits
 
+https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
+
 ## Current State
  - It can run any Linux System Command remotely
  - Perform Persistence via a startup process
