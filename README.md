@@ -27,6 +27,7 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 - Implement plugins for Privilege escalation, Persistence and for container service exploitation
 
 ## Important
+-  Successfully tested on a  Arm Cortex-A53 processor
 - My framework is not evasive as the void link framework
 - This is work in progress, and I do not know how far this will go, your support is highly appreciated, and I am open to accpeting your contributions to the project (read the contributing.md file)
 - I used claude ai to speed up the build process
