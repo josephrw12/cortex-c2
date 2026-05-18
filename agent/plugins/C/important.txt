@@ -1,0 +1,3 @@
+Refer to this https://github.com/V4bel/dirtyfrag/blob/master/README.md
+
+To compile and handle the priv esc plugin
