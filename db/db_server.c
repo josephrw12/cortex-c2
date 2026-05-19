@@ -3,10 +3,16 @@
  * JSON flat-file DB over a custom TCP application-layer protocol
  *
  * PROTOCOL (application layer, text-based, over raw TCP):
- * â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ * ─────────────────────────────────────────────────────────
  * Every message is a single line (ends with \n).
- * Requests  â†’  VERB|arg1|arg2|...\n
- * Responses â†’  OK|payload\n   or   ERR|reason\n
+ * Requests  →  VERB|arg1|arg2|...\n
+ * Responses →  OK|payload\n   or   ERR|reason\n
+ *
+ * For multi-row responses (READ_ALL, READ_WHERE) the payload is a
+ * JSON array serialised onto one line:
+ *   OK|[{...},{...},...]\n
+ * An empty result set returns:
+ *   OK|[]\n
  *
  * Supported verbs:
  *   WRITE|<machine_id>|<command>
@@ -16,6 +22,14 @@
  *   READ_LAST|<machine_id>
  *       Return the last record whose "machine" matches <machine_id>.
  *       Response: OK|<json_line>   or   ERR|NOT_FOUND
+ *
+ *   READ_ALL
+ *       Return every record in the DB as a JSON array.
+ *       Response: OK|[{...},{...},...]
+ *
+ *   READ_WHERE|<key>|<value>
+ *       Return all records where JSON field <key> == <value>.
+ *       Response: OK|[{...},{...},...]   or   ERR|NOT_FOUND
  *
  *   UPDATE_RESULT|<uuid>|<result>
  *       Set the "result" field of the record with the given uuid.
@@ -35,13 +49,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-/* â”€â”€ tunables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── tunables ────────────────────────────────────────────── */
 #define DB_FILE   "store.json"
 #define PORT      9000
 #define BACKLOG   8
 #define BUF_SIZE  4096
 
-/* â”€â”€ UUID v4 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── UUID v4 ─────────────────────────────────────────────── */
 static void generate_uuid(char out[37])
 {
     unsigned char b[16];
@@ -58,7 +72,7 @@ static void generate_uuid(char out[37])
         b[8],b[9], b[10],b[11],b[12],b[13],b[14],b[15]);
 }
 
-/* â”€â”€ tiny JSON helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── tiny JSON helpers ───────────────────────────────────── */
 
 /*
  * Build one JSON record line (no internal newlines).
@@ -69,7 +83,6 @@ static char *make_record(const char *uuid,
                          const char *command,
                          const char *result)
 {
-    /* {"uuid":"...","machine":"...","command":"...","result":"..."} */
     size_t n = strlen(uuid) + strlen(machine) +
                strlen(command) + strlen(result) + 64;
     char *buf = malloc(n);
@@ -87,7 +100,6 @@ static char *make_record(const char *uuid,
  */
 static int json_get(const char *json, const char *key, char *out, size_t outsz)
 {
-    /* look for  "key":"  */
     char needle[64];
     snprintf(needle, sizeof needle, "\"%s\":\"", key);
     const char *p = strstr(json, needle);
@@ -102,7 +114,7 @@ static int json_get(const char *json, const char *key, char *out, size_t outsz)
     return 1;
 }
 
-/* â”€â”€ DB operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── DB operations ────────────────────────────────────────── */
 
 /* Append one JSON record line to DB_FILE */
 static int db_write(const char *machine, const char *command, char uuid_out[37])
@@ -120,7 +132,6 @@ static int db_write(const char *machine, const char *command, char uuid_out[37])
 
 /*
  * Read the last line whose "machine" field == target.
- * Copies the whole JSON line into `out` (caller provides outsz bytes).
  * Returns 1 found / 0 not-found / -1 error.
  */
 static int db_read_last(const char *machine, char *out, size_t outsz)
@@ -134,7 +145,6 @@ static int db_read_last(const char *machine, char *out, size_t outsz)
     char m[256];
 
     while (fgets(line, sizeof line, f)) {
-        /* strip newline */
         line[strcspn(line, "\n")] = '\0';
         if (!json_get(line, "machine", m, sizeof m)) continue;
         if (strcmp(m, machine) == 0) {
@@ -154,6 +164,129 @@ static int db_read_last(const char *machine, char *out, size_t outsz)
 }
 
 /*
+ * db_read_all – collect every record from DB_FILE into a
+ * dynamically-allocated array of heap strings.
+ *
+ * On success, *lines_out points to a malloc'd array of malloc'd
+ * strings and *count_out holds the number of entries.
+ * Caller must free each string and then the array.
+ * Returns  0 on success (even when the file is empty),
+ *         -1 on I/O error.
+ */
+static int db_read_all(char ***lines_out, size_t *count_out)
+{
+    *lines_out  = NULL;
+    *count_out  = 0;
+
+    FILE *f = fopen(DB_FILE, "r");
+    if (!f) {
+        /* treat a missing file as an empty DB, not an error */
+        if (errno == ENOENT) return 0;
+        return -1;
+    }
+
+    char    line[BUF_SIZE];
+    char  **arr   = NULL;
+    size_t  count = 0;
+
+    while (fgets(line, sizeof line, f)) {
+        line[strcspn(line, "\n")] = '\0';
+        if (line[0] == '\0') continue;          /* skip blank lines */
+
+        char **tmp = realloc(arr, (count + 1) * sizeof(char *));
+        if (!tmp) {
+            for (size_t i = 0; i < count; i++) free(arr[i]);
+            free(arr);
+            fclose(f);
+            return -1;
+        }
+        arr = tmp;
+        arr[count] = strdup(line);
+        count++;
+    }
+    fclose(f);
+
+    *lines_out = arr;
+    *count_out = count;
+    return 0;
+}
+
+/*
+ * db_read_where – like db_read_all but filtered.
+ * Returns only records where json field <key> == <value>.
+ *
+ * Ownership semantics identical to db_read_all.
+ * Returns  0 on success (empty result set is valid),
+ *         -1 on I/O error.
+ */
+static int db_read_where(const char *key, const char *value,
+                         char ***lines_out, size_t *count_out)
+{
+    char  **all   = NULL;
+    size_t  total = 0;
+
+    if (db_read_all(&all, &total) < 0) return -1;
+
+    char  **arr   = NULL;
+    size_t  count = 0;
+    char    field[1024];
+
+    for (size_t i = 0; i < total; i++) {
+        if (json_get(all[i], key, field, sizeof field) &&
+            strcmp(field, value) == 0)
+        {
+            char **tmp = realloc(arr, (count + 1) * sizeof(char *));
+            if (!tmp) {
+                for (size_t j = 0; j < count; j++) free(arr[j]);
+                free(arr);
+                for (size_t j = i; j < total; j++) free(all[j]);
+                free(all);
+                return -1;
+            }
+            arr = tmp;
+            arr[count] = all[i];   /* transfer ownership */
+            all[i] = NULL;
+            count++;
+        } else {
+            free(all[i]);
+        }
+    }
+    free(all);
+
+    *lines_out = arr;
+    *count_out = count;
+    return 0;
+}
+
+/*
+ * Serialise a set of JSON lines into a single-line JSON array string.
+ * Returns a malloc'd string; caller must free().
+ * e.g.  [{...},{...}]
+ */
+static char *build_json_array(char **lines, size_t count)
+{
+    /* first pass: measure required capacity */
+    size_t cap = 3;   /* "[]" + NUL */
+    for (size_t i = 0; i < count; i++)
+        cap += strlen(lines[i]) + 1;   /* +1 for ',' */
+
+    char *buf = malloc(cap);
+    if (!buf) return NULL;
+
+    buf[0] = '[';
+    size_t pos = 1;
+    for (size_t i = 0; i < count; i++) {
+        size_t len = strlen(lines[i]);
+        memcpy(buf + pos, lines[i], len);
+        pos += len;
+        if (i + 1 < count) buf[pos++] = ',';
+    }
+    buf[pos++] = ']';
+    buf[pos]   = '\0';
+    return buf;
+}
+
+/*
  * Rewrite DB_FILE, replacing the "result" field of the record
  * whose "uuid" == target_uuid.
  * Returns 1 updated / 0 not-found / -1 error.
@@ -163,7 +296,6 @@ static int db_update_result(const char *target_uuid, const char *new_result)
     FILE *f = fopen(DB_FILE, "r");
     if (!f) return -1;
 
-    /* read all lines into memory */
     char **lines = NULL;
     size_t count  = 0;
     char   line[BUF_SIZE];
@@ -177,17 +309,15 @@ static int db_update_result(const char *target_uuid, const char *new_result)
     }
     fclose(f);
 
-    /* patch the matching line */
     for (size_t i = 0; i < count; i++) {
         char uuid[64];
         if (!json_get(lines[i], "uuid", uuid, sizeof uuid)) continue;
         if (strcmp(uuid, target_uuid) != 0) continue;
 
-        /* extract other fields */
         char machine[256], command[1024], old_result[1024];
-        json_get(lines[i], "machine",  machine,     sizeof machine);
-        json_get(lines[i], "command",  command,     sizeof command);
-        json_get(lines[i], "result",   old_result,  sizeof old_result);
+        json_get(lines[i], "machine",  machine,    sizeof machine);
+        json_get(lines[i], "command",  command,    sizeof command);
+        json_get(lines[i], "result",   old_result, sizeof old_result);
         (void)old_result;
 
         free(lines[i]);
@@ -202,7 +332,6 @@ static int db_update_result(const char *target_uuid, const char *new_result)
         return 0;
     }
 
-    /* rewrite file */
     f = fopen(DB_FILE, "w");
     if (!f) {
         for (size_t i = 0; i < count; i++) free(lines[i]);
@@ -218,19 +347,50 @@ static int db_update_result(const char *target_uuid, const char *new_result)
     return 1;
 }
 
-/* â”€â”€ protocol dispatcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── dynamic response buffer helpers ─────────────────────── */
 
 /*
- * Process one request line and write the response into resp_buf.
- * Returns length of response (excluding NUL).
+ * Write a potentially-large response into a heap buffer.
+ * Returns a malloc'd string (caller must free) or NULL on OOM.
+ * Format:  "OK|<json_array>\n"
  */
-static size_t handle_request(const char *req, char *resp_buf, size_t resp_sz)
+static char *make_array_response(char **lines, size_t count)
 {
-    /* tokenise by '|' */
+    char *arr = build_json_array(lines, count);
+    if (!arr) return NULL;
+
+    /* "OK|" (3) + array + "\n" (1) + NUL (1) */
+    size_t rlen = 3 + strlen(arr) + 2;
+    char  *resp = malloc(rlen);
+    if (!resp) { free(arr); return NULL; }
+    snprintf(resp, rlen, "OK|%s\n", arr);
+    free(arr);
+    return resp;
+}
+
+/* ── protocol dispatcher ─────────────────────────────────── */
+
+/*
+ * Process one request line.
+ *
+ * For most verbs the response fits in resp_buf (stack-allocated by the
+ * caller). For READ_ALL / READ_WHERE the response can be arbitrarily
+ * large; in that case *heap_resp is set to a malloc'd string and the
+ * caller is responsible for free()ing it.  resp_buf is not used when
+ * *heap_resp is set.
+ *
+ * Returns byte-length of the response (excluding NUL).
+ */
+static size_t handle_request(const char *req,
+                             char       *resp_buf,
+                             size_t      resp_sz,
+                             char      **heap_resp)
+{
+    *heap_resp = NULL;
+
     char work[BUF_SIZE];
     strncpy(work, req, sizeof work - 1);
     work[sizeof work - 1] = '\0';
-    /* strip trailing \r\n */
     work[strcspn(work, "\r\n")] = '\0';
 
     char *tokens[8];
@@ -238,18 +398,16 @@ static size_t handle_request(const char *req, char *resp_buf, size_t resp_sz)
     char *p = strtok(work, "|");
     while (p && ntok < 8) { tokens[ntok++] = p; p = strtok(NULL, "|"); }
 
-    if (ntok == 0) {
+    if (ntok == 0)
         return (size_t)snprintf(resp_buf, resp_sz, "ERR|EMPTY_REQUEST\n");
-    }
 
     const char *verb = tokens[0];
 
-    /* â”€â”€ PING â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-    if (strcmp(verb, "PING") == 0) {
+    /* ── PING ────────────────────────────────────────────── */
+    if (strcmp(verb, "PING") == 0)
         return (size_t)snprintf(resp_buf, resp_sz, "OK|PONG\n");
-    }
 
-    /* â”€â”€ WRITE|machine|command â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── WRITE|machine|command ───────────────────────────── */
     if (strcmp(verb, "WRITE") == 0) {
         if (ntok < 3)
             return (size_t)snprintf(resp_buf, resp_sz,
@@ -260,7 +418,7 @@ static size_t handle_request(const char *req, char *resp_buf, size_t resp_sz)
         return (size_t)snprintf(resp_buf, resp_sz, "OK|%s\n", uuid);
     }
 
-    /* â”€â”€ READ_LAST|machine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── READ_LAST|machine ───────────────────────────────── */
     if (strcmp(verb, "READ_LAST") == 0) {
         if (ntok < 2)
             return (size_t)snprintf(resp_buf, resp_sz,
@@ -272,7 +430,69 @@ static size_t handle_request(const char *req, char *resp_buf, size_t resp_sz)
         return (size_t)snprintf(resp_buf, resp_sz, "OK|%s\n", out);
     }
 
-    /* â”€â”€ UPDATE_RESULT|uuid|result â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    /* ── READ_ALL ─────────────────────────────────────────
+     *
+     * Returns every record as a JSON array on one line:
+     *   OK|[{...},{...},...]\n
+     * An empty DB returns:
+     *   OK|[]\n
+     */
+    if (strcmp(verb, "READ_ALL") == 0) {
+        char  **lines = NULL;
+        size_t  count = 0;
+        if (db_read_all(&lines, &count) < 0)
+            return (size_t)snprintf(resp_buf, resp_sz, "ERR|DB_ERROR\n");
+
+        char *resp = make_array_response(lines, count);
+        for (size_t i = 0; i < count; i++) free(lines[i]);
+        free(lines);
+
+        if (!resp)
+            return (size_t)snprintf(resp_buf, resp_sz, "ERR|OUT_OF_MEMORY\n");
+
+        *heap_resp = resp;
+        return strlen(resp);
+    }
+
+    /* ── READ_WHERE|key|value ─────────────────────────────
+     *
+     * Returns all records where the JSON field <key> == <value>.
+     *   OK|[{...},{...},...]\n
+     * No matches:
+     *   ERR|NOT_FOUND\n
+     *
+     * Examples:
+     *   READ_WHERE|machine|server-01
+     *   READ_WHERE|result|success
+     *   READ_WHERE|uuid|3f2504e0-4f89-41d3-9a0c-0305e82c3301
+     */
+    if (strcmp(verb, "READ_WHERE") == 0) {
+        if (ntok < 3)
+            return (size_t)snprintf(resp_buf, resp_sz,
+                                    "ERR|READ_WHERE requires key and value\n");
+
+        char  **lines = NULL;
+        size_t  count = 0;
+        if (db_read_where(tokens[1], tokens[2], &lines, &count) < 0)
+            return (size_t)snprintf(resp_buf, resp_sz, "ERR|DB_ERROR\n");
+
+        if (count == 0) {
+            free(lines);
+            return (size_t)snprintf(resp_buf, resp_sz, "ERR|NOT_FOUND\n");
+        }
+
+        char *resp = make_array_response(lines, count);
+        for (size_t i = 0; i < count; i++) free(lines[i]);
+        free(lines);
+
+        if (!resp)
+            return (size_t)snprintf(resp_buf, resp_sz, "ERR|OUT_OF_MEMORY\n");
+
+        *heap_resp = resp;
+        return strlen(resp);
+    }
+
+    /* ── UPDATE_RESULT|uuid|result ───────────────────────── */
     if (strcmp(verb, "UPDATE_RESULT") == 0) {
         if (ntok < 3)
             return (size_t)snprintf(resp_buf, resp_sz,
@@ -286,7 +506,7 @@ static size_t handle_request(const char *req, char *resp_buf, size_t resp_sz)
     return (size_t)snprintf(resp_buf, resp_sz, "ERR|UNKNOWN_VERB\n");
 }
 
-/* â”€â”€ TCP server â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── TCP server ──────────────────────────────────────────── */
 
 static void serve_client(int cfd)
 {
@@ -304,8 +524,16 @@ static void serve_client(int cfd)
     }
     req[total] = '\0';
 
-    size_t rlen = handle_request(req, resp, sizeof resp);
-    write(cfd, resp, rlen);
+    char  *heap_resp = NULL;
+    size_t rlen = handle_request(req, resp, sizeof resp, &heap_resp);
+
+    if (heap_resp) {
+        /* large response lives on the heap */
+        write(cfd, heap_resp, rlen);
+        free(heap_resp);
+    } else {
+        write(cfd, resp, rlen);
+    }
 
 done:
     close(cfd);
@@ -333,7 +561,8 @@ int main(void)
     }
 
     printf("[db_server] Listening on port %d  (DB: %s)\n", PORT, DB_FILE);
-    printf("[db_server] Protocol verbs: PING | WRITE | READ_LAST | UPDATE_RESULT\n");
+    printf("[db_server] Protocol verbs: PING | WRITE | READ_LAST | "
+           "READ_ALL | READ_WHERE | UPDATE_RESULT\n");
     fflush(stdout);
 
     for (;;) {
