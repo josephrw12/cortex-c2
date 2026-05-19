@@ -33,11 +33,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
+      padding: 2rem 1rem 4rem;
+      gap: 1.5rem;
     }
 
-    /* subtle grid texture */
     body::before {
       content: '';
       position: fixed;
@@ -50,6 +49,7 @@
       z-index: 0;
     }
 
+    /* ── shared card shell ── */
     .card {
       position: relative;
       z-index: 1;
@@ -61,6 +61,9 @@
       overflow: hidden;
     }
 
+    /* wider cards for the two new panels */
+    .card.wide { max-width: 720px; }
+
     .card-header {
       padding: 2rem 2rem 1.5rem;
       border-bottom: 1px solid var(--border);
@@ -70,58 +73,32 @@
     }
 
     .icon-wrap {
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       border-radius: 10px;
       background: rgba(74,222,128,0.1);
       border: 1px solid rgba(74,222,128,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-
     .icon-wrap svg { width: 22px; height: 22px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-    .header-text h1 {
-      font-size: 1.25rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #fff;
-    }
-
-    .header-text p {
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      color: var(--muted);
-      margin-top: 3px;
-    }
+    .header-text h1 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+    .header-text p  { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
 
     .card-body { padding: 1.75rem 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
 
     .field { display: flex; flex-direction: column; gap: 6px; }
 
     .field label {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      font-weight: 500;
-      color: var(--label);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
+      color: var(--label); text-transform: uppercase; letter-spacing: 0.08em;
     }
 
     .input-wrap { position: relative; }
-
     .input-wrap .prefix {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      color: var(--accent-dim);
-      pointer-events: none;
-      user-select: none;
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      font-family: var(--mono); font-size: 0.78rem; color: var(--accent-dim);
+      pointer-events: none; user-select: none;
     }
 
     input, textarea {
@@ -137,40 +114,39 @@
       transition: border-color 0.15s, box-shadow 0.15s;
       resize: none;
     }
-
     textarea { padding: 12px 14px; min-height: 88px; line-height: 1.6; }
-
     input::placeholder, textarea::placeholder { color: var(--muted); }
-
     input:focus, textarea:focus {
       border-color: rgba(74,222,128,0.4);
       box-shadow: 0 0 0 3px rgba(74,222,128,0.08);
     }
 
-    .submit-btn {
-      width: 100%;
+    /* no-prefix input variant */
+    input.no-prefix { padding-left: 14px; }
+
+    /* ── buttons ── */
+    .btn {
       padding: 13px;
       background: var(--accent);
-      border: none;
-      border-radius: 10px;
+      border: none; border-radius: 10px;
       color: #0d0f14;
-      font-family: var(--sans);
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 0.02em;
+      font-family: var(--sans); font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.02em;
       transition: background 0.15s, transform 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
+    .btn:hover  { background: #86efac; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+    .btn.full { width: 100%; }
+    .btn.outline {
+      background: transparent;
+      border: 1px solid rgba(74,222,128,0.35);
+      color: var(--accent);
+    }
+    .btn.outline:hover { background: rgba(74,222,128,0.07); }
 
-    .submit-btn:hover { background: #86efac; }
-    .submit-btn:active { transform: scale(0.98); }
-    .submit-btn:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
-
-    .submit-btn .spinner {
+    .spinner {
       width: 16px; height: 16px;
       border: 2px solid rgba(0,0,0,0.3);
       border-top-color: #0d0f14;
@@ -178,13 +154,14 @@
       animation: spin 0.6s linear infinite;
       display: none;
     }
-
-    .submit-btn.loading .spinner { display: block; }
-    .submit-btn.loading .btn-text { display: none; }
+    .btn.loading .spinner { display: block; }
+    .btn.loading .btn-text { display: none; }
+    /* outline spinner is dark-on-transparent */
+    .btn.outline .spinner { border-color: rgba(74,222,128,0.25); border-top-color: var(--accent); }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Response panel */
+    /* ── response panel (write card) ── */
     .response-panel {
       margin: 0 2rem 1.75rem;
       background: var(--panel);
@@ -194,96 +171,159 @@
       display: none;
       animation: fadeIn 0.2s ease;
     }
-
     .response-panel.visible { display: block; }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: none; } }
 
-    .response-panel .resp-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
+    .resp-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .status-dot.ok  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
     .status-dot.err { background: var(--err);    box-shadow: 0 0 6px var(--err); }
-
-    .resp-label {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
+    .resp-label { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
     .resp-label.ok  { color: var(--accent); }
     .resp-label.err { color: var(--err); }
-
-    .resp-body {
-      font-family: var(--mono);
-      font-size: 0.82rem;
-      color: var(--text);
-      line-height: 1.7;
-      word-break: break-all;
-    }
-
+    .resp-body { font-family: var(--mono); font-size: 0.82rem; color: var(--text); line-height: 1.7; word-break: break-all; }
     .resp-body .kv { display: flex; gap: 10px; }
     .resp-body .kv .k { color: var(--muted); min-width: 60px; }
     .resp-body .kv .v { color: var(--accent); }
     .resp-body .kv .v.err-val { color: var(--err); }
 
+    /* ── card footer ── */
     .card-footer {
       border-top: 1px solid var(--border);
       padding: 12px 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
     }
-
-    .endpoint-tag {
-      font-family: var(--mono);
-      font-size: 0.68rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
+    .endpoint-tag { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
     .method-badge {
-      background: rgba(74,222,128,0.1);
+      font-size: 0.65rem; font-weight: 700; padding: 2px 7px;
+      border-radius: 4px; border: 1px solid rgba(74,222,128,0.2);
+    }
+    .method-badge.post { background: rgba(74,222,128,0.1); color: var(--accent); }
+    .method-badge.get  { background: rgba(96,165,250,0.1); color: #60a5fa; border-color: rgba(96,165,250,0.2); }
+    .history-count { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); }
+
+    /* ── machine ID chip list ── */
+    .chip-area {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 14px 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-height: 52px;
+      align-items: center;
+    }
+    .chip-area.empty::before {
+      content: 'No records yet — press Fetch All';
+      font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
+    }
+    .chip {
+      font-family: var(--mono); font-size: 0.75rem;
+      background: rgba(74,222,128,0.08);
+      border: 1px solid rgba(74,222,128,0.22);
       color: var(--accent);
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 4px;
-      border: 1px solid rgba(74,222,128,0.2);
+      padding: 4px 10px; border-radius: 20px;
+      cursor: default;
+      transition: background 0.12s;
+    }
+    .chip:hover { background: rgba(74,222,128,0.16); }
+
+    /* ── results table ── */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      /* subtle horizontal scroll indicator */
+      background:
+        linear-gradient(to right, var(--panel) 30%, transparent),
+        linear-gradient(to left,  var(--panel) 30%, transparent),
+        radial-gradient(farthest-side at 0   50%, rgba(74,222,128,0.12), transparent),
+        radial-gradient(farthest-side at 100% 50%, rgba(74,222,128,0.12), transparent);
+      background-attachment: local, local, scroll, scroll;
     }
 
-    .history-count {
+    table {
+      width: 100%;
+      min-width: 520px;          /* forces horizontal scroll on small screens */
+      border-collapse: collapse;
       font-family: var(--mono);
-      font-size: 0.68rem;
-      color: var(--muted);
+      font-size: 0.8rem;
     }
+
+    thead tr {
+      background: rgba(74,222,128,0.06);
+      border-bottom: 1px solid var(--border);
+    }
+    thead th {
+      padding: 10px 16px;
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: var(--label);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+
+    tbody td {
+      padding: 11px 16px;
+      color: var(--text);
+      vertical-align: top;
+      line-height: 1.55;
+    }
+    tbody td.cmd  { color: #93c5fd; white-space: pre-wrap; word-break: break-all; }
+    tbody td.res  { color: var(--accent); white-space: pre-wrap; word-break: break-all; }
+    tbody td.res.empty { color: var(--muted); font-style: italic; }
+
+    .row-num {
+      font-size: 0.65rem;
+      color: var(--muted);
+      padding-right: 8px;
+      text-align: right;
+      min-width: 28px;
+      user-select: none;
+    }
+
+    /* no-results row */
+    .no-results td {
+      text-align: center;
+      color: var(--muted);
+      padding: 20px;
+      font-style: italic;
+    }
+
+    /* inline status message below a card body */
+    .status-msg {
+      font-family: var(--mono); font-size: 0.76rem;
+      padding: 10px 14px; border-radius: 8px;
+      display: none;
+    }
+    .status-msg.visible { display: block; animation: fadeIn 0.2s ease; }
+    .status-msg.ok  { background: rgba(74,222,128,0.08);  color: var(--accent); border: 1px solid rgba(74,222,128,0.2); }
+    .status-msg.err { background: rgba(248,113,113,0.08); color: var(--err);    border: 1px solid rgba(248,113,113,0.2); }
   </style>
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════════════════════════════
+     CARD 1 — Write a command
+════════════════════════════════════════════════════════════════ -->
 <div class="card" role="main">
-
   <div class="card-header">
     <div class="icon-wrap" aria-hidden="true">
       <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 7l4 4-4 4"/><path d="M12 15h4"/></svg>
     </div>
     <div class="header-text">
       <h1>Command Writer</h1>
-      <p>POST â†’ /write &nbsp;Â·&nbsp; TCP relay to backend</p>
+      <p>POST → /write &nbsp;·&nbsp; TCP relay to backend</p>
     </div>
   </div>
 
@@ -295,13 +335,11 @@
         <input id="machine_id" type="text" placeholder="e.g. MACHINE-42" autocomplete="off" spellcheck="false" />
       </div>
     </div>
-
     <div class="field">
       <label for="command">Command</label>
-      <textarea id="command" placeholder='e.g. uname -a'></textarea>
+      <textarea id="command" placeholder="e.g. uname -a"></textarea>
     </div>
-
-    <button class="submit-btn" id="submitBtn" onclick="sendRequest()">
+    <button class="btn full" id="submitBtn" onclick="sendRequest()">
       <div class="spinner" aria-hidden="true"></div>
       <span class="btn-text">Send Request</span>
     </button>
@@ -317,20 +355,141 @@
 
   <div class="card-footer">
     <div class="endpoint-tag">
-      <span class="method-badge">POST</span>
+      <span class="method-badge post">POST</span>
       <span id="endpointUrl">http://localhost:5000/write</span>
     </div>
     <span class="history-count" id="historyCount"></span>
   </div>
-
 </div>
 
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CARD 2 — Fetch all rows → list unique Machine IDs
+════════════════════════════════════════════════════════════════ -->
+<div class="card wide">
+  <div class="card-header">
+    <div class="icon-wrap" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h10"/><circle cx="17" cy="17" r="3"/><path d="M21 21l-1.5-1.5"/></svg>
+    </div>
+    <div class="header-text">
+      <h1>All Machine IDs</h1>
+      <p>GET → /records &nbsp;·&nbsp; lists every unique machine ID in the DB</p>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <button class="btn full outline" id="fetchAllBtn" onclick="fetchAllMachineIDs()">
+      <div class="spinner" aria-hidden="true"></div>
+      <span class="btn-text">Fetch All Records</span>
+    </button>
+
+    <div class="status-msg" id="fetchAllStatus"></div>
+
+    <!-- chips render here -->
+    <div class="chip-area empty" id="chipArea" aria-label="Machine ID list"></div>
+  </div>
+
+  <div class="card-footer">
+    <div class="endpoint-tag">
+      <span class="method-badge get">GET</span>
+      <span>/records</span>
+    </div>
+    <span class="history-count" id="allRecordCount"></span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     CARD 3 — Fetch rows by Machine ID → command / result table
+════════════════════════════════════════════════════════════════ -->
+<div class="card wide">
+  <div class="card-header">
+    <div class="icon-wrap" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+    </div>
+    <div class="header-text">
+      <h1>Records by Machine</h1>
+      <p>POST → /records/where &nbsp;·&nbsp; filter by machine ID</p>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="field">
+      <label for="filter_machine_id">Machine ID</label>
+      <div class="input-wrap">
+        <span class="prefix" aria-hidden="true">#</span>
+        <input id="filter_machine_id" type="text" placeholder="e.g. MACHINE-42"
+               autocomplete="off" spellcheck="false"
+               onkeydown="if(event.key==='Enter') fetchByMachine()" />
+      </div>
+    </div>
+
+    <button class="btn full outline" id="filterBtn" onclick="fetchByMachine()">
+      <div class="spinner" aria-hidden="true"></div>
+      <span class="btn-text">Fetch Records</span>
+    </button>
+
+    <div class="status-msg" id="filterStatus"></div>
+  </div>
+
+  <!-- table lives outside card-body so it can bleed edge-to-edge inside the card -->
+  <div style="padding: 0 2rem 1.75rem;">
+    <div class="table-wrap" id="tableWrap" style="display:none;">
+      <table aria-label="Command and result records">
+        <thead>
+          <tr>
+            <th class="row-num">#</th>
+            <th>Command</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="endpoint-tag">
+      <span class="method-badge post">POST</span>
+      <span>/records/where</span>
+    </div>
+    <span class="history-count" id="filterRecordCount"></span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JavaScript
+════════════════════════════════════════════════════════════════ -->
 <script>
-  const API_URL = `${window.location.origin}/write`;
-  document.getElementById('endpointUrl').textContent = API_URL;
+  const BASE = window.location.origin;
+  document.getElementById('endpointUrl').textContent = `${BASE}/write`;
 
-  let requestCount = 0;
+  let writeCount = 0;
 
+  /* ── helpers ─────────────────────────────────────────────────── */
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function setLoading(btn, on) {
+    btn.disabled = on;
+    btn.classList.toggle('loading', on);
+  }
+
+  function showStatusMsg(elId, type, text) {
+    const el = document.getElementById(elId);
+    el.className = `status-msg ${type} visible`;
+    el.textContent = text;
+  }
+
+  function hideStatusMsg(elId) {
+    document.getElementById(elId).className = 'status-msg';
+  }
+
+  /* ── CARD 1 — write ──────────────────────────────────────────── */
   async function sendRequest() {
     const machineId = document.getElementById('machine_id').value.trim();
     const command   = document.getElementById('command').value.trim();
@@ -342,22 +501,21 @@
       return;
     }
 
-    btn.disabled = true;
-    btn.classList.add('loading');
+    setLoading(btn, true);
     panel.classList.remove('visible');
 
     try {
-      const res  = await fetch(API_URL, {
-        method:  'POST',
+      const res  = await fetch(`${BASE}/write`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ machine_id: machineId, command })
+        body: JSON.stringify({ machine_id: machineId, command })
       });
       const data = await res.json();
 
       if (data.status === 'ok') {
-        requestCount++;
+        writeCount++;
         document.getElementById('historyCount').textContent =
-          `${requestCount} record${requestCount === 1 ? '' : 's'} written`;
+          `${writeCount} record${writeCount === 1 ? '' : 's'} written`;
         showResult('ok', data.uuid, null);
       } else {
         showResult('error', null, data.message || 'Unknown error');
@@ -365,46 +523,170 @@
     } catch (err) {
       showResult('error', null, `Network error: ${err.message}`);
     } finally {
-      btn.disabled = false;
-      btn.classList.remove('loading');
+      setLoading(btn, false);
     }
   }
 
   function showResult(type, uuid, message) {
-    const panel     = document.getElementById('responsePanel');
-    const dot       = document.getElementById('statusDot');
-    const label     = document.getElementById('statusLabel');
-    const body      = document.getElementById('respBody');
+    const panel = document.getElementById('responsePanel');
+    const dot   = document.getElementById('statusDot');
+    const label = document.getElementById('statusLabel');
+    const body  = document.getElementById('respBody');
 
     dot.className   = `status-dot ${type === 'ok' ? 'ok' : 'err'}`;
     label.className = `resp-label ${type === 'ok' ? 'ok' : 'err'}`;
     label.textContent = type === 'ok' ? 'Success' : 'Error';
 
-    if (type === 'ok') {
-      body.innerHTML = `
-        <div class="kv"><span class="k">status</span><span class="v">OK</span></div>
-        <div class="kv"><span class="k">uuid</span><span class="v">${escHtml(uuid)}</span></div>
-      `;
-    } else {
-      body.innerHTML = `
-        <div class="kv"><span class="k">status</span><span class="v err-val">ERR</span></div>
-        <div class="kv"><span class="k">reason</span><span class="v err-val">${escHtml(message)}</span></div>
-      `;
-    }
+    body.innerHTML = type === 'ok'
+      ? `<div class="kv"><span class="k">status</span><span class="v">OK</span></div>
+         <div class="kv"><span class="k">uuid</span><span class="v">${escHtml(uuid)}</span></div>`
+      : `<div class="kv"><span class="k">status</span><span class="v err-val">ERR</span></div>
+         <div class="kv"><span class="k">reason</span><span class="v err-val">${escHtml(message)}</span></div>`;
 
     panel.classList.add('visible');
   }
 
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  /* Allow Ctrl+Enter / Cmd+Enter to submit from the textarea */
   document.getElementById('command').addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendRequest();
   });
+
+
+  /* ── CARD 2 — fetch all → list unique Machine IDs ────────────── */
+  /**
+   * fetchAllMachineIDs()
+   * Calls GET /records, iterates every row, extracts the "machine" field,
+   * deduplicates, then renders a chip for each unique ID.
+   */
+  async function fetchAllMachineIDs() {
+    const btn      = document.getElementById('fetchAllBtn');
+    const chipArea = document.getElementById('chipArea');
+
+    setLoading(btn, true);
+    hideStatusMsg('fetchAllStatus');
+
+    try {
+      const res  = await fetch(`${BASE}/records`);
+      const data = await res.json();
+
+      if (data.status !== 'ok') {
+        showStatusMsg('fetchAllStatus', 'err', data.message || 'Server error');
+        return;
+      }
+
+      const records = data.records || [];
+
+      /* collect unique machine IDs by iterating all rows */
+      const seen = new Set();
+      records.forEach(row => {
+        if (row.machine) seen.add(row.machine);
+      });
+
+      /* render */
+      chipArea.classList.remove('empty');
+      chipArea.innerHTML = '';
+
+      if (seen.size === 0) {
+        chipArea.classList.add('empty');
+      } else {
+        seen.forEach(id => {
+          const chip = document.createElement('span');
+          chip.className   = 'chip';
+          chip.textContent = id;
+          /* convenience: clicking a chip pre-fills card 3 */
+          chip.title = 'Click to filter by this ID';
+          chip.style.cursor = 'pointer';
+          chip.addEventListener('click', () => {
+            document.getElementById('filter_machine_id').value = id;
+            document.getElementById('tableWrap').style.display = 'none';
+            hideStatusMsg('filterStatus');
+            document.getElementById('filterRecordCount').textContent = '';
+          });
+          chipArea.appendChild(chip);
+        });
+      }
+
+      document.getElementById('allRecordCount').textContent =
+        `${records.length} row${records.length === 1 ? '' : 's'} · ${seen.size} unique ID${seen.size === 1 ? '' : 's'}`;
+
+    } catch (err) {
+      showStatusMsg('fetchAllStatus', 'err', `Network error: ${err.message}`);
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+
+  /* ── CARD 3 — fetch by Machine ID → command/result table ─────── */
+  /**
+   * fetchByMachine()
+   * Calls POST /records/where with the supplied machine_id, then iterates
+   * every returned row and renders only the "command" and "result" columns
+   * in a horizontally-scrollable table.
+   */
+  async function fetchByMachine() {
+    const machineId = document.getElementById('filter_machine_id').value.trim();
+    const btn       = document.getElementById('filterBtn');
+    const tableWrap = document.getElementById('tableWrap');
+    const tableBody = document.getElementById('tableBody');
+
+    if (!machineId) {
+      showStatusMsg('filterStatus', 'err', 'Please enter a Machine ID.');
+      return;
+    }
+
+    setLoading(btn, true);
+    hideStatusMsg('filterStatus');
+    tableWrap.style.display = 'none';
+    tableBody.innerHTML = '';
+    document.getElementById('filterRecordCount').textContent = '';
+
+    try {
+      const res  = await fetch(`${BASE}/records/where`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ machine_id: machineId })
+      });
+      const data = await res.json();
+
+      if (data.status !== 'ok') {
+        const msg = res.status === 404
+          ? `No records found for machine "${escHtml(machineId)}"`
+          : (data.message || 'Server error');
+        showStatusMsg('filterStatus', 'err', msg);
+        return;
+      }
+
+      const records = data.records || [];
+
+      if (records.length === 0) {
+        showStatusMsg('filterStatus', 'err', `No records found for "${escHtml(machineId)}"`);
+        return;
+      }
+
+      /* iterate rows → build table rows (command + result only) */
+      records.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+
+        const hasResult = row.result !== undefined && row.result !== '';
+
+        tr.innerHTML = `
+          <td class="row-num">${idx + 1}</td>
+          <td class="cmd">${escHtml(row.command ?? '')}</td>
+          <td class="res${hasResult ? '' : ' empty'}">${hasResult ? escHtml(row.result) : '(pending)'}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      tableWrap.style.display = 'block';
+      document.getElementById('filterRecordCount').textContent =
+        `${records.length} record${records.length === 1 ? '' : 's'}`;
+
+    } catch (err) {
+      showStatusMsg('filterStatus', 'err', `Network error: ${err.message}`);
+    } finally {
+      setLoading(btn, false);
+    }
+  }
 </script>
 
 </body>
