@@ -55,7 +55,7 @@ plugin_download:plugin_v1.bin
 - Hopefully make it cloud native sometime in the future
 
 ## Important
-- In Production the entire agent filder should run onn the target Linux machine and the DB Server Client, Team server and team server cleint will run on the attacker infrastructure.
+- In Production the entire agent folder should run onn the target Linux machine, where as the DB Server, Team server and team server cleint will run on the attacker infrastructure.
 - Open an Issue if you run into any errors while trying to use it
 -  Successfully tested on a  Arm Cortex-A53 processor
 - My framework is not evasive as the void link framework
