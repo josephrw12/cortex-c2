@@ -22,7 +22,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 ## Usage
 
 ### Manual 
--  compile any C source code files as necessary gcc -g -o <output_binary_name> <c_soruce_file_name> and also the main.go file in (./agent/plugins/go/lateral_movement) 
+-  compile any C source code files as necessary gcc -g -o <output_binary_name> <c_soruce_file_name> (Make sure the binary name is the same as the source file name) and also the main.go file in (./agent/plugins/go/lateral_movement) 
 - Compile the db_server_2.c file and Run the db_server_2 binary in the ./db folder 
 - Edit the configuration details according to your setup in the config.py file  in the ./agent/orchestration/config.py
 - activate the team server in the ./team_server folder
