@@ -50,7 +50,9 @@ RECV_SIZE   = 65536   # enlarged to accommodate large READ_ALL payloads
 DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")  # folder where files live
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-ALLOWED_EXTENSIONS = {".bin", ".so", ".dll", ".exe", ".zip", ".tar", ".gz", ".pkg", ".dat"}
+#ALLOWED_EXTENSIONS = {".bin", ".so", ".dll", ".exe", ".zip", ".tar", ".gz", ".pkg", ".dat"}
+ALLOWED_EXTENSIONS = {".bin", ".so", ".elf", ".zip", ".tar", ".gz", ".pkg", ".sh"}
+
 
 def is_safe_path(base: str, filename: str) -> bool:
     """Prevent path traversal attacks (e.g. '../../etc/passwd')."""
