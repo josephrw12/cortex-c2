@@ -42,7 +42,7 @@ int main(void)
 		
 		if (pipe) {
 			while (fgets(buffer, sizeof(buffer), pipe) != NULL) {
-				printf("Output: %s", buffer);
+				//printf("Output: %s", buffer);
 				/* Echo the string back to stdout followed by a newline so Python's
 				 * readline() returns immediately.                                   */
 				fprintf(stdout, "%s\n", buffer);
