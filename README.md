@@ -1,11 +1,12 @@
 # cortex-c2
-Cortex C2 is a Open source Linux post exploitation framework inspired by the void link C2 framework, and my implementation was built for embedded device security research, CTF use and for educational purposes only.
+Cortex C2 is a Open source (Hopefully cloud native sometime in the future) Linux post exploitation framework inspired by the void link C2 framework, and my implementation was built for embedded device security research, CTF use and for educational purposes only.
 
 https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compiled-kernel-rootkits
 
 https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 
 ## Current State
+ - This project will never be perfect, but I will do my best to make it useful to the community. 
  - It can run any Linux System Command remotely
  - Perform Persistence via a startup process (NOT TESTED)
  - Priviledge Escalate via CVE 2026-43284 (Thanks to: Mykhailo Stepanov - https://www.linkedin.com/in/mykhailo-stepanov-57857a1a0/)
