@@ -1,5 +1,5 @@
 # cortex-c2
-Cortex C2 is a Open source (Hopefully cloud native sometime in the future) Linux post exploitation framework inspired by the void link C2 framework, and my implementation was built for embedded device security research, CTF use and for educational purposes only.
+Cortex C2 is a Open source Linux post exploitation framework inspired by the void link C2 framework, and my implementation was built for embedded device security research, CTF use and for educational purposes only.
 
 https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compiled-kernel-rootkits
 
@@ -52,6 +52,7 @@ plugin_download:plugin_v1.bin
 
 ## Todo
 - Implement plugins for container service exploitation
+- Hopefully make it cloud native sometime in the future
 
 ## Important
 - Open an Issue if you run into any errors while trying to use it
