@@ -18,7 +18,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 - Custom JSON database
 - Custom DB communication protocol at the application Layer
 - Team Server (Windows / Linux / Mac)
-- The agent runs only on Linux
+- The agent and db run only on Linux
 
 ## Usage
 
