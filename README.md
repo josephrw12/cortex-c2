@@ -11,6 +11,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
  - Perform Persistence via a startup process (NOT TESTED)
  - Priviledge Escalate via CVE 2026-43284 (Thanks to: Mykhailo Stepanov - https://www.linkedin.com/in/mykhailo-stepanov-57857a1a0/) (NOT TESTED)
  - Perform Lateral Movement via SSH Brute Force
+ - Download additional plugins on demand
 
 ## Features
 - Modular and extensible
