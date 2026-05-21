@@ -33,6 +33,22 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 -  open the index.html file in the ./team_server_client folder and issue commands (If the team server runs some where other than on the same machine as the client edut the API_URL in the client)
 - Team server client can run commands on compromised devices, list all compromised devices and show commadn history for all commands run on the compromised devices
 
+### Automated
+```bash
+chmod +x ./build.sh
+chmod +x ./build_db.sh
+chmod +x run.sh
+
+./build.sh
+./build_db.sh
+./run.sh
+```
+
+## Production Usage
+ - after running the 2 build scripts deply only the dist folder onto the target environment
+ -  the db server and the team server and the team server client msut run on the attacker infrastructure
+ -  Set the variables in the ./dist/orchestartion/config.py according to your setup
+
 ### Running commands
  - Enter a regular linux command into the team server client
  - For Lateral Movement
@@ -56,7 +72,6 @@ plugin_download:plugin_v1.bin
 - Hopefully make it cloud native sometime in the future
 
 ## Important
-- In Production the entire agent folder should run onn the target Linux machine, where as the DB Server, Team server and team server cleint will run on the attacker infrastructure.
 - Open an Issue if you run into any errors while trying to use it
 -  Successfully tested on a  Arm Cortex-A53 processor
 - My framework is not evasive as the void link framework
