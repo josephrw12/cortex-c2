@@ -50,8 +50,12 @@ RECV_SIZE   = 65536   # enlarged to accommodate large READ_ALL payloads
 DOWNLOAD_DIR = os.path.join(os.path.dirname(__file__), "downloads")  # folder where files live
 os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
-#ALLOWED_EXTENSIONS = {".bin", ".so", ".dll", ".exe", ".zip", ".tar", ".gz", ".pkg", ".dat"}
-ALLOWED_EXTENSIONS = {".bin", ".so", ".elf", ".zip", ".tar", ".gz", ".pkg", ".sh"}
+ALLOWED_EXTENSIONS = {
+    ".bin", ".so", ".elf", ".exe", ".dll",
+    ".zip", ".tar", ".gz", ".tgz", ".pkg", ".sh"
+}
+
+
 
 
 def is_safe_path(base: str, filename: str) -> bool:
@@ -60,7 +64,16 @@ def is_safe_path(base: str, filename: str) -> bool:
     return resolved.startswith(os.path.abspath(base))
 
 def is_allowed(filename: str) -> bool:
-    _, ext = os.path.splitext(filename)
+    """Allow files with whitelisted extensions OR no extension (common for ELF/Go binaries)."""
+    if not filename or filename.endswith('.'):
+        return False
+    
+    name, ext = os.path.splitext(filename)
+    
+    # Allow files with no extension (typical for Linux/ELF Go binaries)
+    if not ext:
+        return True
+    
     return ext.lower() in ALLOWED_EXTENSIONS
 
 
