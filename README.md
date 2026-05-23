@@ -18,7 +18,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 - Modular and extensible
 - Custom JSON database
 - Custom DB communication protocol at the application Layer
-- Team Server (Windows / Linux / Mac) - But you will have to cross compile the binaries in the ./team_server downloads folder for Linux if you are on Mac or Windows 
+- Team Server (Windows / Linux / Mac) - But you will have to cross compile the binaries in the ./team_server/downloads/src folder for Linux if you are on Mac or Windows 
 - The agent and db run only on Linux
 - Supports using Telegram as a C2 (Read the README.md file a ./team_server/downloads/src/go/telegram_c2/README.md)
 
