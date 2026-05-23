@@ -47,9 +47,9 @@ chmod +x run.sh
 ```
 
 ## Production Usage
- - after running the 2 build scripts deply only the dist folder onto the target environment
+ - after running the 2 build scripts deploy only the dist folder onto the target environment
  -  the db server and the team server and the team server client msut run on the attacker infrastructure
- -  Set the variables in the ./dist/orchestartion/config.py according to your setup
+ -  Set the variables in the ./dist/orchestartion/config.py according to your setup prior to deployment
 
 ### Running commands
  - Enter a regular linux command into the team server client
