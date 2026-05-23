@@ -56,7 +56,7 @@ chmod +x run.sh
  - Enter a regular linux command into the team server client
  - For Lateral Movement
 
- - The agent is purposely built to stop the same command from executing over and over again, so if you issue a command like plugin_download:rpibot and you see an error but you wish to run that command again then run plugin_download:rpibot-somerandom-text  and following that run plugin_download:rpibot once again 
+
    ```
    # Edit the usernames.txt and passwords.txt file in the ./dist/orchestration folder
    lateral_movement:../plugins/go/lateral_movement/main:-host:<target IP>:-port:<SSH Server PORT>:-delay:500ms
@@ -64,6 +64,8 @@ chmod +x run.sh
    cat lateral_output.txt
 
    ```
+ - The agent is purposely built to stop the same command from executing over and over again, so if you issue a command like plugin_download:rpibot and you see an error but you wish to run that command again then run plugin_download:rpibot-somerandom-text  and following that run plugin_download:rpibot once again 
+   
  - TO download plugins on demand (Thanks to for the idea: https://sabotagesec.com/)
  - That is the benign plugin you can compile and place your own pluigns in the ./team_server/downloads folder
 ```
