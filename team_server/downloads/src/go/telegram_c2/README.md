@@ -31,4 +31,29 @@ In the team server client
 plugin_download:rpibot
 
 plugin_run:rpibot
+
+Check your telegram
 ```
+
+## Available Commands
+
+| Command           | Description                         |
+|-------------------|-------------------------------------|
+| `/start`          | Confirm connection                  |
+| `/help`           | Show this command list              |
+| `/info`           | Show hostname, uptime, CPU, mem, IP |
+| `/run <command>`  | Run any shell command               |
+| `/reboot`         | Reboot the Pi                       |
+| `/poweroff`       | Shut down the Pi                    |
+
+### Examples
+
+```
+/run df -h
+/run ls /home/pi
+/run systemctl status nginx
+/run cat /proc/cpuinfo | grep Model
+/run ping -c 4 google.com
+```
+
+---
