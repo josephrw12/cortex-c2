@@ -67,6 +67,14 @@ chmod +x run.sh
  - That is the benign plugin you can compile and place your own pluigns in the ./team_server/downloads folder
 ```
 plugin_download:plugin_v1.bin
+
+# or any other binary you download and place in the downloads folder for example the telegram c2 bot
+plugin_download:rpibot
+
+# to run the on demand plugins
+plugin_run:<Your plugin>
+# example
+plugin_run:rpibot
 ```  
 ## Extend 
 - To extend the framework edit the python files in the ./agent/orchestration folder for example to include a Discord C2
