@@ -7,6 +7,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 
 ## Current State
  - This project will never be perfect, but I will do my best to make it useful to the community. 
+ - It is Language independent you can build and extend it in whatever language you wish
  - It can run any Linux System Command remotely
  - Perform Persistence via a startup process (NOT TESTED)
  - Priviledge Escalate via CVE 2026-43284 (Thanks to: Mykhailo Stepanov - https://www.linkedin.com/in/mykhailo-stepanov-57857a1a0/) (NOT TESTED)
