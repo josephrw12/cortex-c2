@@ -22,8 +22,8 @@ var (
 )
 
 func init() {
-	botToken = "8636020299:AAElccRoqZM8wuh39In0XDDrVSXpWXLQUM8"
-	allowedIDs = parseIDs("5769199880")
+	botToken = "<your bot token>"
+	allowedIDs = parseIDs("<your chat id>")
 	deviceName = getEnv("DEVICE_NAME", hostname())
 }
 
