@@ -6,6 +6,7 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 from datetime import datetime
+import signal
 
 import config   # Import centralized configuration
 
@@ -104,7 +105,7 @@ def handle_plugin_download(command: str) -> str:
         log_event(f"Download failed: {e}")
         return f"ERROR: Download failed - {e}"
 
-
+'''
 def handle_plugin_run(command: str) -> str:
     """Handle: plugin_run:filename"""
     try:
@@ -134,7 +135,68 @@ def handle_plugin_run(command: str) -> str:
     except Exception as e:
         log_event(f"Plugin run failed: {e}")
         return f"ERROR: {e}"
+'''
 
+
+# golang binaries throw an error when run with the commented out code above so I fixed it with this CODE
+def handle_plugin_run(command: str) -> str:
+    """Handle: plugin_run:filename"""
+    try:
+        _, filename = command.split(":", 1)
+        filename = filename.strip()
+        
+        if not filename:
+            return "ERROR: No filename provided after plugin_run:"
+
+        ensure_on_demand_directory()
+        
+        binary_path = os.path.normpath(os.path.join(config.ON_DEMAND_DIR, filename))
+        
+        if not os.path.isfile(binary_path):
+            return f"ERROR: Binary not found: {binary_path}"
+        
+        if not os.access(binary_path, os.X_OK):
+            return f"ERROR: Binary is not executable: {filename}"
+
+        log_event(f"Running on-demand plugin: {filename}")
+
+        # Improved subprocess configuration
+        result = subprocess.run(
+            [binary_path],
+            capture_output=True,
+            text=True,
+            check=False,                    # Don't raise on non-zero exit
+            timeout=120,                    # Increased to 2 minutes
+            stdin=subprocess.DEVNULL,       # Prevent hanging on input
+            cwd=config.ON_DEMAND_DIR,       # Run from correct directory
+            env=os.environ.copy(),          # Pass environment variables
+            preexec_fn=os.setsid            # New process group (better kill control)
+        )
+
+        log_event(f"Plugin finished: {filename} | Return code: {result.returncode}")
+
+        output = result.stdout.strip()
+        error_output = result.stderr.strip()
+
+        if result.returncode == 0:
+            return f"Plugin executed successfully: {filename}\n{output}"
+        else:
+            return (f"Plugin failed (code {result.returncode}): {filename}\n"
+                    f"STDOUT: {output}\n"
+                    f"STDERR: {error_output}")
+
+    except subprocess.TimeoutExpired:
+        # Kill the process group if it times out
+        try:
+            os.killpg(os.getpgid(result.pid), signal.SIGTERM)
+        except:
+            pass
+        log_event(f"Plugin timed out: {filename}")
+        return f"ERROR: Plugin '{filename}' timed out after 120 seconds"
+
+    except Exception as e:
+        log_event(f"Plugin run failed: {e}")
+        return f"ERROR: Failed to run plugin: {str(e)}"
 
 def handle_persist_command() -> str:
     """Handle persist command."""
