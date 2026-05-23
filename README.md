@@ -80,7 +80,8 @@ plugin_run:<Your plugin>
 plugin_run:rpibot
 ```  
 ## Extend 
-- To extend the framework edit the python files in the ./agent/orchestration folder for example to include a Discord C2
+- To extend the agent functionality edit the python files in the ./agent/orchestration folder for example to include a Discord C2
+- Since it's lancguage independent you can edit each component as you wish example:  db, team_server
 
 ## Todo
 - Implement plugins for container service exploitation
