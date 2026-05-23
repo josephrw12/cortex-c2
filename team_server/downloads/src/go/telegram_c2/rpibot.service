@@ -1,0 +1,23 @@
+[Unit]
+Description=Raspberry Pi Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/rpibot
+ExecStart=/home/pi/rpibot/rpibot
+Restart=on-failure
+RestartSec=5s
+
+# Environment — edit these or use an EnvironmentFile
+Environment=BOT_TOKEN=your_token_here
+Environment=DEVICE_NAME=pi-living-room
+Environment=ALLOWED_CHAT=123456789
+
+# Uncomment to load from a file instead (more secure):
+# EnvironmentFile=/home/pi/rpibot/.env
+
+[Install]
+WantedBy=multi-user.target
