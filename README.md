@@ -12,6 +12,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
  - Priviledge Escalate via CVE 2026-43284 (Thanks to: Mykhailo Stepanov - https://www.linkedin.com/in/mykhailo-stepanov-57857a1a0/) (NOT TESTED)
  - Perform Lateral Movement via SSH Brute Force
  - Download additional plugins on demand
+ - Fallback Telegram C2
 
 ## Features
 - Modular and extensible
@@ -19,6 +20,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 - Custom DB communication protocol at the application Layer
 - Team Server (Windows / Linux / Mac)
 - The agent and db run only on Linux
+- Supports using Telegram as a C2 (Read the README.md file a ./team_server/downloads/src/go/telegram_c2/README.md)
 
 ## Usage
 
@@ -65,7 +67,7 @@ chmod +x run.sh
 plugin_download:plugin_v1.bin
 ```  
 ## Extend 
-- To extend the framework edit the python files in the ./agent/orchestration folder for example to include a telegram C2
+- To extend the framework edit the python files in the ./agent/orchestration folder for example to include a Discord C2
 
 ## Todo
 - Implement plugins for container service exploitation
