@@ -53,6 +53,16 @@ chmod +x run.sh
  -  Set the variables in the ./dist/orchestartion/config.py according to your setup prior to deployment
 
 ### Running commands
+1.  List compromised devices 
+![List compromised devices](https://res.cloudinary.com/djsyg3fii/image/upload/v1779621149/c2_1_a9g9b2.jpg)
+
+2. Run a command on the compromised device
+![Run a command](https://res.cloudinary.com/djsyg3fii/image/upload/v1779621149/c2_2_sdja89.jpg)
+
+3. See all commands run on the target
+![View command history](https://res.cloudinary.com/djsyg3fii/image/upload/v1779621149/c2_3_tpjssx.jpg)
+
+
  - Enter a regular linux command into the team server client
  - For Lateral Movement
 
