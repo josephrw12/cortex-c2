@@ -38,7 +38,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 - activate the team server in the ./team_server folder
   - activate a python virtual environment
   - python3 -m venv venv
-  -  sourve venv/bin/activate
+  -  source venv/bin/activate
   - pip install falsk falsk-cors
   - python3 app_2.py if the DB server runs somewhere else other than on local host then:  TCP_HOST=1<DB IP> TCP_PORT=9100 python3 app_2.py
 -  open the index.html file in the ./team_server_client folder and issue commands (If the team server runs some where other than on the same machine as the client edut the API_URL in the client)
@@ -57,7 +57,7 @@ chmod +x run.sh
 
 ## Production Usage
  - after running the 2 build scripts deploy only the dist folder onto the target environment
- -  the db server and the team server and the team server client msut run on the attacker infrastructure
+ -  the db server and the team server and the team server client must run on the attacker infrastructure
  -  Set the variables in the ./dist/orchestartion/config.py according to your setup prior to deployment
 
 ### Running commands
