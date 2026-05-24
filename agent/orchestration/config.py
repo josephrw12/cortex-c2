@@ -1,5 +1,5 @@
 """Configuration for the Executor Client"""
-
+# Enter the Data Base server and Port here
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 9000
 RECV_SIZE = 4096
