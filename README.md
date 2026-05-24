@@ -5,7 +5,13 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 
 https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 
+# High level Functionality
+ - The agent folder contains several python scripts that read commands from the custom DB execute those commands and write the result back to the custom DB, and the team server Just writes the commands needed to be executed on the target to the DB and reads the result of the commands from the DB
+ - I included a plugins folder in the agent that includes a few Core plugins
+ - The on_demand_plugins folder will hold the plugins downloaded from the team server the prupose for this is to load only the required plugins and to hide all of the rest from malware analysts 
+
 ## Current State
+ - I would consider this as a C2 template that you can extend as you wish
  - This project will never be perfect, but I will do my best to make it useful to the community. 
  - It is Language independent you can build and extend it in whatever language you wish
  - It can run any Linux System Command remotely
@@ -90,7 +96,7 @@ plugin_run:rpibot
 ```  
 ## Extend 
 - To extend the agent functionality edit the python files in the ./agent/orchestration folder for example to include a Discord C2
-- Since it's lancguage independent you can edit each component as you wish example:  db, team_server
+- Since it's language independent you can edit each component as you wish example:  db, team_server
 
 ## Todo
 - Implement plugins for container service exploitation
