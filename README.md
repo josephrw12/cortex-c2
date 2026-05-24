@@ -5,7 +5,7 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 
 https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 
-# High level Functionality
+## High level Functionality
  - The agent folder contains several python scripts that read commands from the custom DB execute those commands and write the result back to the custom DB, and the team server Just writes the commands needed to be executed on the target to the DB and reads the result of the commands from the DB
  - I included a plugins folder in the agent that includes a few Core plugins
  - The on_demand_plugins folder will hold the plugins downloaded from the team server the prupose for this is to load only the required plugins and to hide all of the rest from malware analysts (The malware developer and maintainer of this blog gave me the idea to do that: https://sabotagesec.com/ )
@@ -53,6 +53,13 @@ chmod +x run.sh
 ./build.sh
 ./build_db.sh
 ./run.sh
+
+- activate the team server in the ./team_server folder
+  - activate a python virtual environment
+  - python3 -m venv venv
+  -  source venv/bin/activate
+  - pip install falsk falsk-cors
+  - python3 app_2.py
 ```
 
 ## Production Usage
@@ -103,6 +110,7 @@ plugin_run:rpibot
 ## Todo
 - Implement plugins for container service exploitation
 - Hopefully make it cloud native sometime in the future
+- Include a server side rendered root kit
 
 ## Important
 - Open an Issue if you run into any errors while trying to use it
