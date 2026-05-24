@@ -111,6 +111,7 @@ plugin_run:rpibot
 - Implement plugins for container service exploitation
 - Hopefully make it cloud native sometime in the future
 - Include a server side rendered root kit
+- Create a multi stage loader to load the ./dist folder
 
 ## Important
 - Open an Issue if you run into any errors while trying to use it
