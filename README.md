@@ -53,6 +53,7 @@ chmod +x run.sh
  -  Set the variables in the ./dist/orchestartion/config.py according to your setup prior to deployment
 
 ### Running commands
+- Open ./team_server_client/index.html in a web browser
 1.  List compromised devices 
 ![List compromised devices](https://res.cloudinary.com/djsyg3fii/image/upload/v1779621149/c2_1_a9g9b2.jpg)
 
@@ -64,9 +65,7 @@ chmod +x run.sh
 
 
  - Enter a regular linux command into the team server client
- - For Lateral Movement
-
-
+ - For Lateral Movement if you prefer to use the built in golang plugin use the commands below 
    ```
    # Edit the usernames.txt and passwords.txt file in the ./dist/orchestration folder
    lateral_movement:../plugins/go/lateral_movement/main:-host:<target IP>:-port:<SSH Server PORT>:-delay:500ms
