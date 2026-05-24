@@ -37,6 +37,8 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 - Edit the configuration details according to your setup in the config.py file  in the ./agent/orchestration/config.py
 - activate the team server in the ./team_server folder
   - activate a python virtual environment
+  - python3 -m venv venv
+  -  sourve venv/bin/activate
   - pip install falsk falsk-cors
   - python3 app_2.py if the DB server runs somewhere else other than on local host then:  TCP_HOST=1<DB IP> TCP_PORT=9100 python3 app_2.py
 -  open the index.html file in the ./team_server_client folder and issue commands (If the team server runs some where other than on the same machine as the client edut the API_URL in the client)
