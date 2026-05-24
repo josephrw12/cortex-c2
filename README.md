@@ -8,7 +8,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 # High level Functionality
  - The agent folder contains several python scripts that read commands from the custom DB execute those commands and write the result back to the custom DB, and the team server Just writes the commands needed to be executed on the target to the DB and reads the result of the commands from the DB
  - I included a plugins folder in the agent that includes a few Core plugins
- - The on_demand_plugins folder will hold the plugins downloaded from the team server the prupose for this is to load only the required plugins and to hide all of the rest from malware analysts 
+ - The on_demand_plugins folder will hold the plugins downloaded from the team server the prupose for this is to load only the required plugins and to hide all of the rest from malware analysts (The malware developer and maintainer fo this blog gave me the idea to do that: https://sabotagesec.com/ )
 
 ## Current State
  - I would consider this as a C2 template that you can extend as you wish
@@ -82,11 +82,11 @@ chmod +x run.sh
  - The agent is purposely built to stop the same command from executing over and over again, so if you issue a command like plugin_download:rpibot and you see an error but you wish to run that command again then run plugin_download:rpibot-somerandom-text  and following that run plugin_download:rpibot once again 
    
  - TO download plugins on demand (Thanks to for the idea: https://sabotagesec.com/)
- - That is the benign plugin you can compile and place your own pluigns in the ./team_server/downloads folder
+ - plugin_v1.bin is a benign plugin I placed in the team_server/downloads folder, you can compile and place your own pluigns in the ./team_server/downloads folder
 ```
 plugin_download:plugin_v1.bin
 
-# or any other binary you download and place in the downloads folder for example the telegram c2 bot
+# or any other binary you compile place in the downloads folder for example the telegram c2 bot
 plugin_download:rpibot
 
 # to run the on demand plugins
