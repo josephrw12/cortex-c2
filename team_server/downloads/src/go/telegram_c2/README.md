@@ -25,8 +25,8 @@ go build -o rpibot .
 # In development
 ./rpibot
 
-# Via the team server
-move the rpibot file to the root fo the downloads folder in the team server
+# Via the team server (In production)
+move the rpibot (or any of the on demand plugins) file to the root fo the downloads folder in the team server
 In the team server client
 plugin_download:rpibot
 
