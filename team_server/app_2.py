@@ -33,15 +33,21 @@ import json
 import socket
 import os
 from flask import Flask, request, jsonify, send_from_directory
+from flask import flash, redirect, url_for
+from werkzeug.utils import secure_filename
+
+
 from flask_cors import CORS
 from flask import abort
 import mimetypes
 
+UPLOAD_FOLDER = 'uploads'
 
 app = Flask(__name__, static_folder="static")
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 CORS(app)  # allow the HTML page to call the API freely
 
-# ── TCP server config ─────────────────────────────────────────────────────────
+# â”€â”€ TCP server config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 SERVER_HOST = os.environ.get("TCP_HOST", "127.0.0.1")
 SERVER_PORT = int(os.environ.get("TCP_PORT", 9000))
 RECV_SIZE   = 65536   # enlarged to accommodate large READ_ALL payloads
@@ -79,7 +85,7 @@ def is_allowed(filename: str) -> bool:
 
 
 
-# ── low-level TCP helper ──────────────────────────────────────────────────────
+# â”€â”€ low-level TCP helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def send_tcp_request(host: str, port: int, message: str) -> str:
     """
     Open a TCP connection, send *message* (adds trailing newline if absent),
@@ -103,7 +109,7 @@ def send_tcp_request(host: str, port: int, message: str) -> str:
     return response.decode().strip()
 
 
-# ── shared TCP error handler ──────────────────────────────────────────────────
+# â”€â”€ shared TCP error handler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def _tcp_call(request_str: str) -> str | None:
     """
     Wrapper around send_tcp_request that catches network errors and returns
@@ -122,7 +128,7 @@ def _tcp_call(request_str: str) -> str | None:
 _tcp_call.error = ""
 
 
-# ── business logic ────────────────────────────────────────────────────────────
+# â”€â”€ business logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def write_record(machine_id: str, command: str) -> dict:
     """Send WRITE|machine_id|command to the TCP server."""
     if "|" in machine_id or "|" in command:
@@ -185,7 +191,7 @@ def fetch_records_by_machine(machine_id: str) -> dict:
     return {"status": "error", "message": response.split("|", 1)[-1]}
 
 
-# ── routes ────────────────────────────────────────────────────────────────────
+# â”€â”€ routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route("/")
 def index():
     """Serve the frontend."""
@@ -297,6 +303,24 @@ def download_file(filename: str):
         download_name=filename,      # filename the client saves as
     )
 
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            print('No file part')
+            #return redirect(request.url)
+        file = request.files['upload_file']
+
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            data = {"message": "Resource uploaded successfully"}
+            return jsonify(data), 201
+
+
+
 @app.errorhandler(400)
 @app.errorhandler(403)
 @app.errorhandler(404)
@@ -304,5 +328,5 @@ def handle_error(e):
     return {"error": str(e)}, e.code
 
 if __name__ == "__main__":
-    print(f"Flask app starting – TCP backend: {SERVER_HOST}:{SERVER_PORT}")
+    print(f"Flask app starting â€“ TCP backend: {SERVER_HOST}:{SERVER_PORT}")
     app.run(host="0.0.0.0", port=5000, debug=True)
