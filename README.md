@@ -112,7 +112,7 @@ plugin_run:rpibot
 
 ## Todo
 - Implement plugins for container service exploitation
-- Hopefully make it cloud native sometime in the future
+- Hopefully make it cloud native sometime in the future -> Currently it has a plugin to extract AWS credentials
 - Include a server side rendered root kit
 - Create a multi stage loader to load the ./dist folder
 
