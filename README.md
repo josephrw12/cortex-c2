@@ -11,7 +11,7 @@ https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
  - The on_demand_plugins folder will hold the plugins downloaded from the team server the prupose for this is to load only the required plugins and to hide all of the rest from malware analysts (The malware developer and maintainer of this blog gave me the idea to do that: https://sabotagesec.com/ )
 
 ## Current State
- - I would consider this as a C2 template that you can extend as you wish
+ - In its current state I would consider this as a C2 template that you can extend as you wish
  - This project will never be perfect, but I will do my best to make it useful to the community. 
  - It is Language independent you can build and extend it in whatever language you wish
  - It can run any Linux System Command remotely
