@@ -5,6 +5,9 @@ https://www.sysdig.com/blog/voidlink-threat-analysis-sysdig-discovers-c2-compile
 
 https://www.ontinue.com/resource/voidlink-dissecting-an-ai-generated-c2-implant/
 
+# UPDATE 
+ - I am rewriting the complete agent orchestration functionality in C to support an interactive terminal and on demand module execution completely in memory, so please expect a delay of a few days in updating this repository  
+
 ## High level Functionality
  - The agent folder contains several python scripts that read commands from the custom DB execute those commands and write the result back to the custom DB, and the team server Just writes the commands needed to be executed on the target to the DB and reads the result of the commands from the DB
  - I included a plugins folder in the agent that includes a few Core plugins
