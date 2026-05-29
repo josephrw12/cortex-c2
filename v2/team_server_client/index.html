@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Remote PTY Terminal</title>
+
+  <!-- xterm.js -->
+  <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/xterm.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/xterm.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/addon-fit/addon-fit.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/5.3.0/addon-web-links/addon-web-links.min.js"></script>
+
+  <style>
+    /* ─── Reset & base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0c0e14;
+      --panel:       #13151e;
+      --border:      #252836;
+      --accent:      #7ee787;      /* github-green */
+      --accent2:     #58a6ff;      /* github-blue  */
+      --warn:        #f0883e;
+      --err:         #ff6b6b;
+      --text:        #c9d1d9;
+      --text-dim:    #6e7681;
+      --badge-bg:    #1e2231;
+      --scrollbar:   #2d3143;
+      --font-mono:   "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+      --font-ui:     "Inter", system-ui, sans-serif;
+      --radius:      6px;
+      --topbar-h:    44px;
+      --toolbar-h:   36px;
+      --statusbar-h: 26px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      line-height: 1.5;
+      overflow: hidden;
+    }
+
+    /* ─── Layout shells ─────────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ─── Top bar ───────────────────────────────────────────────── */
+    #topbar {
+      height: var(--topbar-h);
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+    }
+    .logo svg { flex-shrink: 0; }
+
+    #topbar-spacer { flex: 1; }
+
+    /* Connection status pill */
+    #status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--badge-bg);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      transition: border-color 0.3s, color 0.3s;
+    }
+    #status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    #status-text { color: var(--text-dim); transition: color 0.3s; }
+
+    #status-pill.connected    { border-color: #1e4a2b; }
+    #status-pill.connected    #status-dot  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    #status-pill.connected    #status-text { color: var(--accent); }
+
+    #status-pill.pty-live     { border-color: #1e4a2b; }
+    #status-pill.pty-live     #status-dot  { background: var(--accent); box-shadow: 0 0 10px var(--accent); animation: pulse 2s infinite; }
+    #status-pill.pty-live     #status-text { color: var(--accent); }
+
+    #status-pill.disconnected { border-color: #4a1e1e; }
+    #status-pill.disconnected #status-dot  { background: var(--err); }
+    #status-pill.disconnected #status-text { color: var(--err); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* ─── Toolbar ───────────────────────────────────────────────── */
+    #toolbar {
+      height: var(--toolbar-h);
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .tb-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .tb-btn:hover { background: var(--border); color: var(--text); }
+    .tb-btn.primary { border-color: #1e4a2b; color: var(--accent); }
+    .tb-btn.primary:hover { background: #1e4a2b; }
+    .tb-btn.danger  { border-color: #4a1e1e; color: var(--err); }
+    .tb-btn.danger:hover  { background: #4a1e1e; }
+
+    .tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+    #tb-spacer { flex: 1; }
+
+    /* ─── Connection panel ──────────────────────────────────────── */
+    #conn-panel {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #ws-url {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 3px 8px;
+      width: 280px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #ws-url:focus { border-color: var(--accent2); }
+
+    /* ─── Terminal area ─────────────────────────────────────────── */
+    #terminal-wrap {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background: #0d1117;   /* slightly different from bg for depth */
+    }
+
+    #terminal-container {
+      position: absolute;
+      inset: 0;
+      padding: 6px 8px;
+    }
+
+    /* xterm overrides */
+    .xterm { height: 100% !important; }
+    .xterm-viewport::-webkit-scrollbar      { width: 6px; }
+    .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
+    .xterm-viewport::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+
+    /* ─── Status bar ────────────────────────────────────────────── */
+    #statusbar {
+      height: var(--statusbar-h);
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 16px;
+      flex-shrink: 0;
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    .sb-item { display: flex; align-items: center; gap: 4px; }
+    .sb-label { color: var(--text-dim); }
+    .sb-val   { color: var(--text); }
+    #sb-spacer { flex: 1; }
+    #sb-latency-val { color: var(--accent2); }
+    #sb-bytes-val   { color: var(--accent); }
+
+    /* ─── Overlay (disconnected / waiting) ─────────────────────── */
+    #overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: rgba(13,17,23,0.88);
+      backdrop-filter: blur(4px);
+      z-index: 10;
+      transition: opacity 0.3s;
+    }
+    #overlay.hidden { opacity: 0; pointer-events: none; }
+
+    .overlay-icon {
+      font-size: 48px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+    .overlay-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .overlay-sub {
+      font-size: 13px;
+      color: var(--text-dim);
+      text-align: center;
+      max-width: 360px;
+    }
+    .overlay-sub code {
+      font-family: var(--font-mono);
+      color: var(--accent2);
+      background: var(--badge-bg);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Top bar ─────────────────────────────────────────────────── -->
+  <header id="topbar">
+    <div class="logo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <path d="M8 21h8M12 17v4"/>
+        <polyline points="6 8 10 12 6 16" stroke="currentColor"/>
+        <line x1="13" y1="16" x2="19" y2="16" stroke="currentColor"/>
+      </svg>
+      PTY Bridge
+    </div>
+
+    <div id="topbar-spacer"></div>
+
+    <div id="status-pill" class="disconnected">
+      <span id="status-dot"></span>
+      <span id="status-text">Disconnected</span>
+    </div>
+  </header>
+
+  <!-- ── Toolbar ─────────────────────────────────────────────────── -->
+  <div id="toolbar">
+    <div id="conn-panel">
+      <input id="ws-url" type="text" value="ws://localhost:8765" spellcheck="false" />
+      <button class="tb-btn primary" id="btn-connect" onclick="connect()">Connect</button>
+      <button class="tb-btn danger"  id="btn-disconnect" onclick="disconnect()" disabled>Disconnect</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <button class="tb-btn" onclick="term.clear()" title="Clear screen">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>
+      </svg>
+      Clear
+    </button>
+
+    <button class="tb-btn" onclick="downloadLog()" title="Download session log">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download Log
+    </button>
+
+    <div id="tb-spacer"></div>
+
+    <span style="font-size:11px; color:var(--text-dim); font-family:var(--font-mono);">
+      xterm.js v5
+    </span>
+  </div>
+
+  <!-- ── Terminal ─────────────────────────────────────────────────── -->
+  <div id="terminal-wrap">
+    <div id="terminal-container"></div>
+
+    <div id="overlay">
+      <div class="overlay-icon">⚡</div>
+      <div class="overlay-title">PTY Bridge Terminal</div>
+      <div class="overlay-sub">
+        Enter your relay server address above and click <strong>Connect</strong>.<br/><br/>
+        On the remote machine, compile and run the C client pointing to this server:<br/><br/>
+        <code>connect_info.address = "127.0.0.1";</code><br/>
+        <code>connect_info.port = 8765;</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Status bar ──────────────────────────────────────────────── -->
+  <footer id="statusbar">
+    <span class="sb-item">
+      <span class="sb-label">RX</span>
+      <span class="sb-val" id="sb-bytes-val">0 B</span>
+    </span>
+    <span class="sb-item">
+      <span class="sb-label">Session</span>
+      <span class="sb-val" id="sb-time-val">—</span>
+    </span>
+    <span id="sb-spacer"></span>
+    <span class="sb-item">
+      <span class="sb-label">Latency</span>
+      <span id="sb-latency-val">—</span>
+    </span>
+    <span class="sb-item">
+      <span class="sb-label">Size</span>
+      <span class="sb-val" id="sb-size-val">—</span>
+    </span>
+  </footer>
+
+</div><!-- #app -->
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.min.js"></script>
+
+<script>
+
+/* ═══════════════════════════════════════════════════════════════
+   xterm.js setup
+   ═════════════════════════════════════════════════════════════ */
+const term = new Terminal({
+  cursorBlink: true,
+  cursorStyle: "bar",
+  fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", monospace',
+  fontSize: 14,
+  lineHeight: 1.2,
+  letterSpacing: 0,
+  theme: {
+    background:    "#0d1117",
+    foreground:    "#c9d1d9",
+    cursor:        "#58a6ff",
+    cursorAccent:  "#0d1117",
+    black:         "#484f58",
+    red:           "#ff7b72",
+    green:         "#3fb950",
+    yellow:        "#d29922",
+    blue:          "#58a6ff",
+    magenta:       "#bc8cff",
+    cyan:          "#39c5cf",
+    white:         "#b1bac4",
+    brightBlack:   "#6e7681",
+    brightRed:     "#ffa198",
+    brightGreen:   "#56d364",
+    brightYellow:  "#e3b341",
+    brightBlue:    "#79c0ff",
+    brightMagenta: "#d2a8ff",
+    brightCyan:    "#56d4dd",
+    brightWhite:   "#f0f6fc",
+    selectionBackground: "rgba(88,166,255,0.25)",
+  },
+  allowProposedApi: true,
+  scrollback: 5000,
+});
+
+const fitAddon     = new FitAddon.FitAddon();
+const webLinksAddon = new WebLinksAddon.WebLinksAddon();
+term.loadAddon(fitAddon);
+term.loadAddon(webLinksAddon);
+term.open(document.getElementById("terminal-container"));
+fitAddon.fit();
+
+window.addEventListener("resize", () => fitAddon.fit());
+
+/* ═══════════════════════════════════════════════════════════════
+   State
+   ═════════════════════════════════════════════════════════════ */
+let socket          = null;
+let sessionStart    = null;
+let totalBytes      = 0;
+let sessionTimer    = null;
+let latencyPing     = null;
+let pingStart       = 0;
+let sessionLog      = "";     // raw text for download
+
+/* ═══════════════════════════════════════════════════════════════
+   UI helpers
+   ═════════════════════════════════════════════════════════════ */
+const pill        = document.getElementById("status-pill");
+const pillDot     = document.getElementById("status-dot");
+const pillText    = document.getElementById("status-text");
+const overlay     = document.getElementById("overlay");
+const btnConnect  = document.getElementById("btn-connect");
+const btnDisconn  = document.getElementById("btn-disconnect");
+
+function setStatus(cls, label) {
+  pill.className = cls;
+  pillText.textContent = label;
+}
+
+function showOverlay(title, sub, icon = "⚡") {
+  overlay.querySelector(".overlay-icon").textContent = icon;
+  overlay.querySelector(".overlay-title").textContent = title;
+  overlay.querySelector(".overlay-sub").innerHTML = sub;
+  overlay.classList.remove("hidden");
+}
+
+function hideOverlay() {
+  overlay.classList.add("hidden");
+}
+
+function fmtBytes(n) {
+  if (n < 1024)       return n + " B";
+  if (n < 1048576)    return (n / 1024).toFixed(1) + " KB";
+  return (n / 1048576).toFixed(2) + " MB";
+}
+
+function fmtDuration(ms) {
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}h ${m % 60}m ${s % 60}s`;
+  if (m > 0) return `${m}m ${s % 60}s`;
+  return `${s}s`;
+}
+
+function updateStatusBar() {
+  document.getElementById("sb-bytes-val").textContent =
+    sessionStart ? fmtBytes(totalBytes) : "0 B";
+
+  document.getElementById("sb-time-val").textContent =
+    sessionStart ? fmtDuration(Date.now() - sessionStart) : "—";
+
+  const cols = term.cols, rows = term.rows;
+  document.getElementById("sb-size-val").textContent =
+    `${cols}×${rows}`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WebSocket management
+   ═════════════════════════════════════════════════════════════ */
+function connect() {
+  const url = document.getElementById("ws-url").value.trim();
+  if (!url) return;
+  if (socket && socket.readyState <= 1) return;
+
+  term.clear();
+  setStatus("connected", "Connecting…");
+  showOverlay("Connecting…", `Reaching <code>${url}</code>`, "🔄");
+
+  socket = new WebSocket(url);
+  socket.binaryType = "arraybuffer";
+
+  socket.onopen = () => {
+    setStatus("connected", "Connected — waiting for PTY");
+    hideOverlay();
+    btnConnect.disabled = true;
+    btnDisconn.disabled = false;
+
+    sessionStart = Date.now();
+    totalBytes   = 0;
+    sessionLog   = "";
+
+    sessionTimer = setInterval(updateStatusBar, 1000);
+
+    // Latency ping loop (send a 0-byte ping conceptually via text)
+
+    term.writeln("\x1b[2m[bridge] WebSocket connected\x1b[0m");
+    term.focus();
+  };
+
+  socket.onmessage = (evt) => {
+    let data;
+
+    if (evt.data instanceof ArrayBuffer) {
+      const bytes = new Uint8Array(evt.data);
+      data = new TextDecoder().decode(bytes);
+    } else {
+      data = evt.data;
+    }
+
+    // Handle our ping echo
+    if (data.includes("__ping__")) {
+      const lat = (performance.now() - pingStart).toFixed(1);
+      document.getElementById("sb-latency-val").textContent = lat + " ms";
+      return;
+    }
+
+    // Detect if PTY is now live (server sends ANSI status line)
+    if (data.includes("PTY client connected")) {
+      setStatus("pty-live", "PTY Live");
+    }
+    if (data.includes("PTY client disconnected")) {
+      setStatus("connected", "Connected — waiting for PTY");
+    }
+
+    totalBytes += (evt.data instanceof ArrayBuffer)
+      ? evt.data.byteLength
+      : new TextEncoder().encode(data).length;
+
+    sessionLog += data;
+    term.write(data);
+    updateStatusBar();
+  };
+
+  socket.onerror = (err) => {
+    console.error("WS error", err);
+    setStatus("disconnected", "Error");
+  };
+
+  socket.onclose = (evt) => {
+    setStatus("disconnected", `Closed (${evt.code})`);
+    showOverlay(
+      "Connection Closed",
+      `Code: <code>${evt.code}</code>${evt.reason ? " — " + evt.reason : ""}<br/>Click <strong>Connect</strong> to reconnect.`,
+      "🔌"
+    );
+    btnConnect.disabled = false;
+    btnDisconn.disabled = true;
+    clearInterval(sessionTimer);
+    clearInterval(latencyPing);
+    sessionStart = null;
+    updateStatusBar();
+    term.writeln("\x1b[2m\r\n[bridge] WebSocket closed\x1b[0m");
+  };
+}
+
+function disconnect() {
+  if (socket) socket.close(1000, "User disconnected");
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Keyboard → WebSocket
+   ═════════════════════════════════════════════════════════════ */
+term.onData((data) => {
+  if (socket && socket.readyState === 1) {
+    // Send as binary (matches what the C client expects)
+    const encoded = new TextEncoder().encode(data);
+    socket.send(encoded.buffer);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   Terminal resize → notify server (optional, for future use)
+   ═════════════════════════════════════════════════════════════ */
+term.onResize(({ cols, rows }) => {
+  updateStatusBar();
+  // Optionally send resize event to server:
+  // if (socket && socket.readyState === 1) {
+  //   socket.send(JSON.stringify({ type: "resize", cols, rows }));
+  // }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   Session log download
+   ═════════════════════════════════════════════════════════════ */
+function downloadLog() {
+  if (!sessionLog) return;
+  const blob = new Blob([sessionLog], { type: "text/plain" });
+  const a    = document.createElement("a");
+  a.href     = URL.createObjectURL(blob);
+  a.download = `pty-session-${Date.now()}.log`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Init
+   ═════════════════════════════════════════════════════════════ */
+updateStatusBar();
+
+// Allow pressing Enter in the URL box to connect
+document.getElementById("ws-url").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") connect();
+});
+</script>
+</body>
+</html>
