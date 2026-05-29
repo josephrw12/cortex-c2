@@ -206,7 +206,7 @@ case LWS_CALLBACK_CLIENT_RECEIVE:
 
         /* Build the download URL from the plugin name */
         char url[512];
-        snprintf(url, sizeof(url), "https://your-plugin-server.com/plugins/%s", plugin_name);
+        snprintf(url, sizeof(url), "https://127.0.0.1:5000/plugins/%s", plugin_name);
         snprintf(binary_path, sizeof(binary_path), "/tmp/%s", plugin_name);
 
         printf("[WS] Plugin requested: %s\n", plugin_name);
