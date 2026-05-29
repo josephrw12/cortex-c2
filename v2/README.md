@@ -21,6 +21,7 @@ gcc -o main main.c  -lwebsockets -lcurl
 cd team_server
 python3 -m venv venv
 source venv/bin/activate
+pip install websockets
 python3 main.py
 
 # Run the client
