@@ -11,11 +11,7 @@
 
 # Usage
 ```bash
-# compile the agent
-cd agent
-gcc -o main main.c  -lwebsockets -lcurl
-# Deploy into your target environment
-./main
+
 
 # Start the team server
 cd team_server
@@ -24,9 +20,24 @@ source venv/bin/activate
 pip install websockets
 python3 main.py
 
+# Start the plugin download server - NOT TESTED AS YET
+cd plugin_download_server
+python3 -m venv venv
+source venv/bin/activate
+pip install flask
+python3 main.py
+
+# compile the agent
+cd agent
+gcc -o main main.c  -lwebsockets -lcurl
+# Deploy into your target environment
+./main
+
 # Run the client
 cd teacm_server_client
 python3 -m http.server
 
 http://127.0.0.1:8000/index.html
+
+# Run any system commands as you wish
 ```
