@@ -28,4 +28,4 @@ if __name__ == '__main__':
 
     # Running on port 80 to match your URL http://127.0.0.1/plugins/plugin-1
     # Note: Running on port 80 may require administrator/sudo privileges
-    app.run(debug=True, host='127.0.0.1', port=80)
+    app.run(debug=True, host='127.0.0.1', port=5000)
