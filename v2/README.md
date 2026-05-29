@@ -7,7 +7,7 @@
 
 # Todo
  - Add feature to download plugins on demand
- - Include Database to store history 
+ - Include Database to store command output history 
 
 # Usage
 ```bash
